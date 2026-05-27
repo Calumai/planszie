@@ -1,1170 +1,665 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>S號的尺寸衣服，我全包了</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['"Noto Sans TC"', 'sans-serif'],
-                        cyber: ['"Orbitron"', 'sans-serif'],
-                    },
-                    colors: {
-                        neonCyan: '#0ff',
-                        neonPink: '#ff00ff',
-                        neonYellow: '#fde047',
-                        darkBg: '#09090b',
-                        cardBg: '#18181b',
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        body { 
-            font-family: 'Noto Sans TC', sans-serif; 
-            background-color: #09090b; 
-            color: #e4e4e7;
-            background-image: 
-                linear-gradient(rgba(0, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 30px 30px;
-        }
-        
-        h1, h2, h3, .cyber-text { font-family: 'Orbitron', 'Noto Sans TC', sans-serif; }
-        
-        .neon-card {
-            background: rgba(24, 24, 27, 0.85);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(0, 255, 255, 0.2);
-            box-shadow: 0 0 15px rgba(0, 255, 255, 0.05), inset 0 0 20px rgba(0, 255, 255, 0.02);
-            position: relative;
-        }
-        
-        .neon-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 2px;
-            background: linear-gradient(90deg, transparent, #0ff, transparent);
-            opacity: 0.5;
-        }
-
-        .neon-border-pink {
-            border: 1px solid rgba(255, 0, 255, 0.3);
-            box-shadow: 0 0 15px rgba(255, 0, 255, 0.1);
-        }
-
-        .neon-border-pink::before { background: linear-gradient(90deg, transparent, #ff00ff, transparent); }
-
-        .neon-border-yellow {
-            border: 1px solid rgba(253, 224, 71, 0.3);
-            box-shadow: 0 0 15px rgba(253, 224, 71, 0.1);
-        }
-        .neon-border-yellow::before { background: linear-gradient(90deg, transparent, #fde047, transparent); }
-
-        .btn-neon {
-            background: rgba(0, 255, 255, 0.1);
-            border: 1px solid #0ff;
-            color: #0ff;
-            text-shadow: 0 0 5px #0ff;
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
-            transition: all 0.3s ease;
-        }
-        
-        .btn-neon:hover {
-            background: #0ff;
-            color: #000;
-            box-shadow: 0 0 20px #0ff;
-        }
-
-        .btn-neon-pink {
-            background: rgba(255, 0, 255, 0.1);
-            border: 1px solid #ff00ff;
-            color: #ff00ff;
-            text-shadow: 0 0 5px #ff00ff;
-            box-shadow: 0 0 10px rgba(255, 0, 255, 0.2);
-            transition: all 0.3s ease;
-        }
-
-        .btn-neon-pink:hover {
-            background: #ff00ff;
-            color: #000;
-            box-shadow: 0 0 20px #ff00ff;
-        }
-
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #09090b; border-left: 1px solid #27272a; }
-        ::-webkit-scrollbar-thumb { background: #0ff; border-radius: 0; }
-        ::-webkit-scrollbar-thumb:hover { background: #ff00ff; }
-        
-        input[type="time"], input[type="text"], input[type="number"], textarea {
-            background: rgba(0, 0, 0, 0.5);
-            border: 1px solid #3f3f46;
-            color: #0ff;
-        }
-        input:focus, textarea:focus {
-            border-color: #0ff !important;
-            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3) !important;
-            outline: none;
-        }
-        
-        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        @keyframes fadeIn { from { opacity: 0; filter: blur(5px); transform: translateY(10px); } to { opacity: 1; filter: blur(0); transform: translateY(0); } }
-
-        .scanlines {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
-            background-size: 100% 4px;
-            pointer-events: none;
-            z-index: 9999;
-            opacity: 0.3;
-        }
-    </style>
-</head>
-<body class="antialiased h-screen flex overflow-hidden">
-    <div class="scanlines"></div>
-
-    <aside class="w-20 md:w-64 bg-cardBg border-r border-cyan-900/50 flex flex-col transition-all duration-300 z-20 shadow-[5px_0_15px_rgba(0,0,0,0.5)] relative">
-        <div class="h-16 flex items-center justify-center md:justify-start md:px-6 border-b border-cyan-900/50">
-            <i class="fa-solid fa-microchip text-neonCyan text-2xl" style="text-shadow: 0 0 10px #0ff;"></i>
-            <span class="ml-3 font-bold text-lg hidden md:block text-white cyber-text tracking-wider">S-SIZE <span class="text-neonPink">PROJECT</span></span>
+<!doctype html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#26735c" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="減脂陪跑" />
+    <title>AI 減脂陪跑助手</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" href="assets/app-icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="主要導覽">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <span></span>
+          </div>
+          <div>
+            <p>AI 減脂陪跑</p>
+            <strong>穩定走到 65kg</strong>
+          </div>
         </div>
-        <nav class="flex-1 py-4 flex flex-col gap-2 px-3 mt-4">
-            <button onclick="switchTab('dashboard')" class="nav-btn w-full flex items-center p-3 rounded-md border border-transparent hover:border-cyan-500/50 text-zinc-400 hover:text-neonCyan transition-all group active" id="nav-dashboard">
-                <i class="fa-solid fa-chart-line text-xl w-6 text-center group-hover:scale-110 transition-transform"></i>
-                <span class="ml-3 font-medium hidden md:block cyber-text text-sm">SYS.DASHBOARD</span>
-            </button>
-            <button onclick="switchTab('daily')" class="nav-btn w-full flex items-center p-3 rounded-md border border-transparent hover:border-pink-500/50 text-zinc-400 hover:text-neonPink transition-all group" id="nav-daily">
-                <i class="fa-solid fa-bolt text-xl w-6 text-center group-hover:scale-110 transition-transform"></i>
-                <span class="ml-3 font-medium hidden md:block cyber-text text-sm">DAILY.TASKS</span>
-            </button>
-            <button onclick="switchTab('plan')" class="nav-btn w-full flex items-center p-3 rounded-md border border-transparent hover:border-yellow-500/50 text-zinc-400 hover:text-neonYellow transition-all group" id="nav-plan">
-                <i class="fa-solid fa-route text-xl w-6 text-center group-hover:scale-110 transition-transform"></i>
-                <span class="ml-3 font-medium hidden md:block cyber-text text-sm">YEAR.PLAN</span>
-            </button>
-            <button onclick="switchTab('settings')" class="nav-btn w-full flex items-center p-3 rounded-md border border-transparent hover:border-cyan-500/50 text-zinc-400 hover:text-neonCyan transition-all group mt-auto" id="nav-settings">
-                <i class="fa-solid fa-database text-xl w-6 text-center group-hover:scale-110 transition-transform"></i>
-                <span class="ml-3 font-medium hidden md:block cyber-text text-sm">GAS.DATABASE</span>
-            </button>
-        </nav>
-    </aside>
 
-    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
-        <header class="h-16 bg-cardBg/90 backdrop-blur border-b border-cyan-900/50 flex items-center justify-between px-6 shadow-[0_5px_15px_rgba(0,0,0,0.5)] z-10">
-            <h2 class="text-xl font-bold text-white cyber-text tracking-widest uppercase" id="page-title" style="text-shadow: 0 0 8px rgba(255,255,255,0.5);">SYS.DASHBOARD</h2>
-            <div class="flex items-center gap-4">
-                <div class="text-sm text-neonCyan hidden sm:block cyber-text">
-                    <i class="fa-solid fa-terminal mr-1"></i> <span id="current-date"></span>
-                </div>
-                <button onclick="openLogModal()" class="btn-neon px-4 py-2 rounded-sm font-bold text-sm flex items-center gap-2 uppercase tracking-wide">
-                    <i class="fa-solid fa-plus"></i> Log Weight
-                </button>
-            </div>
+        <nav class="tabs" aria-label="頁面切換">
+          <button class="tab-button is-active" data-tab="dashboard" type="button">
+            <span aria-hidden="true">⌂</span> 今日總覽
+          </button>
+          <button class="tab-button" data-tab="food" type="button">
+            <span aria-hidden="true">＋</span> 新增飲食
+          </button>
+          <button class="tab-button" data-tab="exercise" type="button">
+            <span aria-hidden="true">◷</span> 新增運動
+          </button>
+          <button class="tab-button" data-tab="records" type="button">
+            <span aria-hidden="true">☰</span> 今日紀錄
+          </button>
+          <button class="tab-button" data-tab="coach" type="button">
+            <span aria-hidden="true">✦</span> AI 教練
+          </button>
+          <button class="tab-button" data-tab="trends" type="button">
+            <span aria-hidden="true">⌁</span> 趨勢
+          </button>
+          <button class="tab-button" data-tab="growth" type="button">
+            <span aria-hidden="true">◎</span> 六階段
+          </button>
+          <button class="tab-button" data-tab="templates" type="button">
+            <span aria-hidden="true">▣</span> 菜單模板
+          </button>
+        </nav>
+
+        <div class="profile-card">
+          <img
+            src="assets/meal-bowl.svg"
+            alt=""
+            class="profile-art"
+            width="164"
+            height="128"
+          />
+          <p>159 cm · 99 kg 起點</p>
+          <strong>目標：一年穩穩到 65 kg</strong>
+          <small>低衝擊有氧＋基礎重訓，飲食保留彈性。</small>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <div>
+            <p id="todayLabel">今天</p>
+            <h1>今天也不用完美，有記錄就有方向。</h1>
+          </div>
+          <div class="topbar-actions">
+            <label for="dayType">今日狀態</label>
+            <select id="dayType">
+              <option value="normal">一般日</option>
+              <option value="training">重訓日</option>
+              <option value="rest">休息日</option>
+            </select>
+            <label for="stageSelect">目前階段</label>
+            <select id="stageSelect">
+              <option value="inspiration">啟發</option>
+              <option value="motivation">動力</option>
+              <option value="intention">意圖</option>
+              <option value="discipline">紀律</option>
+              <option value="habit">習慣</option>
+              <option value="passion">熱情</option>
+            </select>
+            <button class="ghost-button install-button" id="installApp" type="button" hidden>
+              安裝到手機
+            </button>
+          </div>
         </header>
 
-        <div class="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 relative">
-            
-            <!-- Dashboard Tab -->
-            <div id="tab-dashboard" class="tab-content fade-in">
-                <div class="neon-card border-l-4 border-l-neonPink rounded-lg p-6 mb-6 relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-neonPink opacity-10 rounded-full blur-3xl"></div>
-                    <h3 class="text-xs font-bold text-neonPink cyber-text mb-2 tracking-widest uppercase"><i class="fa-solid fa-satellite-dish mr-1"></i> Incoming Transmission</h3>
-                    <p class="text-lg md:text-xl font-medium text-white leading-relaxed relative z-10" id="motivation-text">
-                        System reboot initialized. 每一滴汗水都是重寫基因代碼的指令，S號裝甲已在終點等待。
-                    </p>
+        <section class="panel is-active" id="dashboard" aria-labelledby="dashboardTitle">
+          <div class="dashboard-grid">
+            <section class="summary-panel">
+              <div class="section-heading">
+                <p>今日熱量</p>
+                <h2 id="dashboardTitle">總覽</h2>
+              </div>
+              <div class="calorie-ring" aria-label="今日熱量進度">
+                <svg viewBox="0 0 180 180" role="img">
+                  <circle cx="90" cy="90" r="74" class="ring-bg"></circle>
+                  <circle cx="90" cy="90" r="74" class="ring-progress" id="calorieRing"></circle>
+                </svg>
+                <div>
+                  <strong id="calorieTotal">0</strong>
+                  <span id="calorieTarget">/ 1700 kcal</span>
                 </div>
+              </div>
+              <div class="metric-row">
+                <article>
+                  <span>剩餘可吃</span>
+                  <strong id="remainingCalories">1700 kcal</strong>
+                </article>
+                <article>
+                  <span>運動消耗</span>
+                  <strong id="exerciseCalories">0 kcal</strong>
+                </article>
+              </div>
+            </section>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-                    <div class="neon-card rounded-lg p-5 flex flex-col">
-                        <span class="text-zinc-400 text-xs font-bold cyber-text tracking-widest mb-2 uppercase"><i class="fa-solid fa-weight-scale mr-2 text-neonCyan"></i>Current Mass</span>
-                        <div class="flex items-end gap-2 cyber-text">
-                            <span class="text-4xl font-bold text-white" id="dash-current-weight" style="text-shadow: 0 0 10px #0ff;">103.0</span>
-                            <span class="text-neonCyan pb-1">kg</span>
-                        </div>
-                        <div class="mt-3 text-sm font-medium cyber-text" id="dash-weight-diff">
-                            <i class="fa-solid fa-arrow-down"></i> -0.0 kg
-                        </div>
-                    </div>
-                    
-                    <div class="neon-card neon-border-yellow rounded-lg p-5 flex flex-col">
-                        <span class="text-zinc-400 text-xs font-bold cyber-text tracking-widest mb-2 uppercase"><i class="fa-solid fa-bullseye mr-2 text-neonYellow"></i>Target (1YR)</span>
-                        <div class="flex items-end gap-2 cyber-text">
-                            <span class="text-4xl font-bold text-white" id="dash-goal-weight" style="text-shadow: 0 0 10px #fde047;">75.0</span>
-                            <span class="text-neonYellow pb-1">kg</span>
-                        </div>
-                        <div class="mt-3 w-full bg-zinc-800 rounded-none h-1.5 border border-zinc-700">
-                            <div class="bg-neonYellow h-full transition-all duration-1000 shadow-[0_0_10px_#fde047]" id="dash-progress-bar" style="width: 0%"></div>
-                        </div>
-                    </div>
+            <section class="coach-card">
+              <div class="section-heading">
+                <p>今日 AI 建議</p>
+                <h2>陪跑回饋</h2>
+              </div>
+              <p id="dailyAdvice">
+                先記錄第一餐，我會幫你抓熱量、蛋白質和晚餐方向。
+              </p>
+            </section>
 
-                    <div class="neon-card neon-border-pink rounded-lg p-5 flex flex-col">
-                        <span class="text-zinc-400 text-xs font-bold cyber-text tracking-widest mb-2 uppercase"><i class="fa-solid fa-calculator mr-2 text-neonPink"></i>BMI Index</span>
-                        <div class="flex items-end gap-2 cyber-text">
-                            <span class="text-4xl font-bold text-white" id="dash-bmi" style="text-shadow: 0 0 10px #ff00ff;">40.7</span>
-                        </div>
-                        <div class="mt-3 text-xs font-bold py-1 px-2 rounded-sm inline-block bg-pink-900/30 border border-neonPink text-neonPink w-max uppercase tracking-wider" id="dash-bmi-status">
-                            Critical Level
-                        </div>
-                    </div>
-
-                    <div class="neon-card rounded-lg p-5 flex flex-col">
-                        <span class="text-zinc-400 text-xs font-bold cyber-text tracking-widest mb-2 uppercase"><i class="fa-solid fa-calendar-day mr-2 text-neonCyan"></i>Cycle Day</span>
-                        <div class="flex items-end gap-2 cyber-text">
-                            <span class="text-4xl font-bold text-white" id="dash-days" style="text-shadow: 0 0 10px #0ff;">DAY 1</span>
-                        </div>
-                        <div class="mt-3 text-xs text-neonCyan cyber-text uppercase tracking-wider" id="dash-phase">
-                            Phase 1: Adaptation
-                        </div>
-                    </div>
+            <section class="macro-panel">
+              <div class="section-heading">
+                <p>營養目標</p>
+                <h2>宏量進度</h2>
+              </div>
+              <div class="progress-list">
+                <div class="progress-item">
+                  <div><span>蛋白質</span><strong id="proteinText">0 / 100 g</strong></div>
+                  <progress id="proteinProgress" max="100" value="0"></progress>
                 </div>
-
-                <div class="neon-card rounded-lg p-5 mb-6 border-t-4 border-t-neonCyan">
-                    <h3 class="font-bold text-white cyber-text text-lg mb-4 flex items-center tracking-widest uppercase"><i class="fa-solid fa-list-check mr-2 text-neonCyan"></i>Daily Protocols</h3>
-                    
-                    <div id="dash-todo-warning" class="hidden bg-yellow-900/30 border border-neonYellow text-neonYellow p-3 rounded-sm text-sm mb-4 font-medium flex items-center gap-2">
-                        <i class="fa-solid fa-triangle-exclamation animate-pulse"></i> WARNING: Daily protocols incomplete.
-                    </div>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div class="bg-zinc-900 border border-blue-500/30 rounded-md p-4 flex flex-col justify-center items-center relative overflow-hidden">
-                            <div class="absolute bottom-0 left-0 w-full bg-blue-600/20 transition-all duration-500 border-t border-blue-500/50" id="dash-water-fill" style="height: 0%; z-index: 0; box-shadow: 0 -5px 15px rgba(59,130,246,0.3);"></div>
-                            <div class="relative z-10 text-center">
-                                <i class="fa-solid fa-glass-water text-blue-400 text-2xl mb-2 drop-shadow-[0_0_5px_rgba(96,165,250,0.8)]"></i>
-                                <div class="text-xs text-blue-300 font-bold cyber-text tracking-widest uppercase">Hydration</div>
-                                <div class="text-xl font-bold text-white mt-1 cyber-text"><span id="dash-water-text" style="text-shadow: 0 0 5px #60a5fa;">0</span> <span class="text-xs text-zinc-400">/ 3100 ML</span></div>
-                            </div>
-                        </div>
-                        <div class="bg-zinc-900 border border-orange-500/30 rounded-md p-4 flex flex-col justify-center items-center text-center">
-                            <i class="fa-solid fa-clock text-orange-400 text-2xl mb-2 drop-shadow-[0_0_5px_rgba(251,146,60,0.8)]"></i>
-                            <div class="text-xs text-orange-300 font-bold cyber-text tracking-widest uppercase">Fasting Window</div>
-                            <div class="text-lg font-bold text-white mt-1 cyber-text tracking-wider" id="dash-fasting-text" style="text-shadow: 0 0 5px #fb923c;">NOT SET</div>
-                        </div>
-                        <div class="bg-zinc-900 border border-zinc-700 rounded-md p-4 flex flex-col justify-center items-center text-center transition-all" id="dash-exercise-card">
-                            <i class="fa-solid fa-person-running text-zinc-500 text-2xl mb-2" id="dash-exercise-icon"></i>
-                            <div class="text-xs text-zinc-400 font-bold cyber-text tracking-widest uppercase" id="dash-exercise-label">Training</div>
-                            <div class="text-lg font-bold text-zinc-500 mt-1 cyber-text tracking-wider" id="dash-exercise-status">OFFLINE</div>
-                        </div>
-                    </div>
+                <div class="progress-item">
+                  <div><span>碳水</span><strong id="carbsText">0 / 150 g</strong></div>
+                  <progress id="carbsProgress" max="150" value="0"></progress>
                 </div>
-
-                <div class="neon-card rounded-lg p-5 mb-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="font-bold text-white cyber-text text-lg tracking-widest uppercase"><i class="fa-solid fa-chart-area mr-2 text-neonCyan"></i>Mass Trajectory</h3>
-                    </div>
-                    <div class="w-full h-64 relative">
-                        <canvas id="weightChart"></canvas>
-                    </div>
+                <div class="progress-item">
+                  <div><span>脂肪</span><strong id="fatText">0 g</strong></div>
+                  <progress id="fatProgress" max="60" value="0"></progress>
                 </div>
+              </div>
+            </section>
+
+            <section class="phase-panel">
+              <div class="section-heading">
+                <p>今日階段提醒</p>
+                <h2 id="stageName">紀律 Discipline</h2>
+              </div>
+              <p id="stageReminder">動力不夠時，用最低標準守住軌道。</p>
+              <div class="minimum-card">
+                <strong>今日最低標準</strong>
+                <p id="minimumStandard">不喝含糖飲料、晚餐有蛋白質、睡前簡單記錄。</p>
+              </div>
+            </section>
+
+            <section class="habit-panel">
+              <div class="section-heading">
+                <p>Adherence</p>
+                <h2>今日習慣分數</h2>
+              </div>
+              <div class="score-display">
+                <strong id="habitScore">0</strong>
+                <span>/ 100</span>
+              </div>
+              <form class="habit-checklist" id="habitForm">
+                <label><input type="checkbox" name="water" /> 有喝足水</label>
+                <label><input type="checkbox" name="noSugaryDrink" /> 沒有含糖飲料</label>
+                <label><input type="checkbox" name="recovery" /> 有睡眠/恢復</label>
+              </form>
+            </section>
+
+            <section class="body-panel">
+              <div class="section-heading">
+                <p>今日身體紀錄</p>
+                <h2>體重與狀態</h2>
+              </div>
+              <form class="body-form" id="bodyForm">
+                <div class="form-grid">
+                  <label>體重 kg<input name="weight" type="number" min="30" step="0.1" placeholder="例如：99.0" /></label>
+                  <label>腰圍 cm<input name="waist" type="number" min="40" step="0.1" placeholder="可選填" /></label>
+                </div>
+                <fieldset class="quick-group" data-field="sleepHours">
+                  <legend>睡眠</legend>
+                  <button type="button" data-value="4">少於5小時</button>
+                  <button type="button" data-value="6">5～6小時</button>
+                  <button type="button" data-value="7.5">7小時以上</button>
+                </fieldset>
+                <fieldset class="quick-group" data-field="hungerLevel">
+                  <legend>飢餓感</legend>
+                  <button type="button" data-value="1">不餓</button>
+                  <button type="button" data-value="3">普通</button>
+                  <button type="button" data-value="5">很餓</button>
+                </fieldset>
+                <fieldset class="quick-group" data-field="energyLevel">
+                  <legend>精神</legend>
+                  <button type="button" data-value="1">低</button>
+                  <button type="button" data-value="3">普通</button>
+                  <button type="button" data-value="5">好</button>
+                </fieldset>
+                <fieldset class="quick-group" data-field="kneeStatus">
+                  <legend>膝蓋</legend>
+                  <button type="button" data-value="OK">OK</button>
+                  <button type="button" data-value="有壓力">有壓力</button>
+                  <button type="button" data-value="痛">痛</button>
+                </fieldset>
+                <fieldset class="quick-group" data-field="calfSoreness">
+                  <legend>小腿</legend>
+                  <button type="button" data-value="OK">OK</button>
+                  <button type="button" data-value="輕微痠">輕微痠</button>
+                  <button type="button" data-value="很痠">很痠</button>
+                </fieldset>
+                <fieldset class="quick-group" data-field="bodyNote">
+                  <legend>其他</legend>
+                  <button type="button" data-value="">無</button>
+                  <button type="button" data-value="生理期">生理期</button>
+                  <button type="button" data-value="今天壓力大">壓力大</button>
+                  <button type="button" data-value="今天睡不好">睡不好</button>
+                </fieldset>
+                <button class="primary-button" type="submit">儲存身體紀錄</button>
+                <p class="connection-status" id="bodyStatus">早上量體重，晚上補狀態也可以。</p>
+              </form>
+            </section>
+
+            <section class="workout-panel">
+              <div class="section-heading">
+                <p>健身房菜單</p>
+                <h2>低衝擊重訓</h2>
+              </div>
+              <ul class="workout-list">
+                <li><span>熱身</span>跑步機快走 5～10 分鐘</li>
+                <li><span>腿推機</span>12 下 × 3 組</li>
+                <li><span>滑輪下拉</span>12 下 × 3 組</li>
+                <li><span>坐姿划船</span>12 下 × 3 組</li>
+                <li><span>胸推機</span>10 下 × 2 組</li>
+                <li><span>臀外展機</span>15 下 × 3 組</li>
+                <li><span>強度</span>大多維持 2～3 RIR</li>
+                <li><span>有氧</span>快走 20～30 分鐘</li>
+              </ul>
+              <details class="form-guide">
+                <summary>姿勢說明</summary>
+                <article>
+                  <strong>腿推機</strong>
+                  <p>腳掌踩穩、膝蓋朝腳尖方向，不要內夾。下放到膝蓋舒服角度即可，推起時膝蓋不要鎖死，感覺放在大腿與臀部。</p>
+                  <small>避免：屁股離墊、膝蓋內扣、重量太重導致腰頂起來。</small>
+                </article>
+                <article>
+                  <strong>滑輪下拉</strong>
+                  <p>胸口微微打開，先把肩膀往下放，再用手肘往身體兩側拉。拉到鎖骨附近即可，慢慢放回。</p>
+                  <small>避免：聳肩、身體大幅後仰、用手臂硬扯。</small>
+                </article>
+                <article>
+                  <strong>坐姿划船</strong>
+                  <p>背打直、肋骨不要外翻，先穩住肩胛，再把手肘往後拉到身體旁邊。回放時讓背有被拉長的感覺。</p>
+                  <small>避免：圓背、用腰甩、肩膀往耳朵跑。</small>
+                </article>
+                <article>
+                  <strong>胸推機</strong>
+                  <p>肩胛貼住椅背，握把約在胸口高度。推的時候手肘不要完全鎖死，回來時控制速度。</p>
+                  <small>避免：肩膀前頂、手腕折太多、重量大到胸口拉扯。</small>
+                </article>
+                <article>
+                  <strong>臀外展機</strong>
+                  <p>骨盆坐穩，膝蓋往外打開時停一秒，慢慢回來。身體可以微微前傾，但不要用腰晃。</p>
+                  <small>避免：借力彈開、只追求開很大、腰部代償。</small>
+                </article>
+              </details>
+            </section>
+          </div>
+        </section>
+
+        <section class="panel" id="food" aria-labelledby="foodTitle">
+          <div class="two-column">
+            <form class="entry-form" id="foodForm">
+              <div class="section-heading">
+                <p>新增飲食</p>
+                <h2 id="foodTitle">文字紀錄與估算</h2>
+              </div>
+              <label>
+                餐別
+                <select name="mealType">
+                  <option>早餐</option>
+                  <option>午餐</option>
+                  <option>晚餐</option>
+                  <option>點心</option>
+                </select>
+              </label>
+              <label>
+                吃了什麼
+                <textarea
+                  name="foodName"
+                  rows="4"
+                  placeholder="例如：雞肉150g、燕麥飯、沙拉、西瓜、高蛋白半包"
+                  required
+                ></textarea>
+              </label>
+              <div class="form-grid">
+                <label>熱量 kcal<input name="calories" type="number" min="0" placeholder="自動估算" /></label>
+                <label>蛋白質 g<input name="protein" type="number" min="0" step="0.1" placeholder="自動估算" /></label>
+                <label>碳水 g<input name="carbs" type="number" min="0" step="0.1" placeholder="自動估算" /></label>
+                <label>脂肪 g<input name="fat" type="number" min="0" step="0.1" placeholder="自動估算" /></label>
+              </div>
+              <div class="upload-placeholder">
+                <span aria-hidden="true">▧</span>
+                <p>照片估算第二版接上，現在先用文字記錄。</p>
+              </div>
+              <button class="primary-button" type="submit">加入今日飲食</button>
+            </form>
+
+            <section class="estimate-card">
+              <div class="section-heading">
+                <p>AI 估算結果</p>
+                <h2>可手動修改</h2>
+              </div>
+              <p id="foodEstimate">
+                輸入食物後，如果營養欄位留空，系統會用常見食材規則先估一版。
+              </p>
+              <div class="tip-box">
+                <strong>提醒</strong>
+                <p>豆漿容易脹氣，建議優先選高蛋白飲、雞肉、蛋、魚、豆腐以外的可接受蛋白質來源。</p>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="panel" id="exercise" aria-labelledby="exerciseTitle">
+          <div class="two-column">
+            <form class="entry-form" id="exerciseForm">
+              <div class="section-heading">
+                <p>新增運動</p>
+                <h2 id="exerciseTitle">低衝擊優先</h2>
+              </div>
+              <label>
+                運動類型
+                <select name="exerciseType">
+                  <option>快走</option>
+                  <option>跑步機</option>
+                  <option>室內腳踏車</option>
+                  <option>飛輪</option>
+                  <option>游泳</option>
+                  <option>重訓</option>
+                  <option>伸展</option>
+                </select>
+              </label>
+              <div class="form-grid">
+                <label>時間 分鐘<input name="duration" type="number" min="1" required /></label>
+                <label>消耗 kcal<input name="caloriesBurned" type="number" min="0" placeholder="可留空估算" /></label>
+                <label>平均心率<input name="heartRate" type="number" min="0" /></label>
+              </div>
+              <label>
+                身體狀態 / 備註
+                <textarea name="note" rows="4" placeholder="例如：膝蓋OK、腿有點痠、今天有重訓"></textarea>
+              </label>
+              <div class="form-grid">
+                <label>膝蓋狀況<input name="kneeStatus" type="text" placeholder="例如：OK / 有壓力" /></label>
+                <label>小腿痠痛<input name="calfSoreness" type="text" placeholder="例如：輕微 / 明顯" /></label>
+              </div>
+              <button class="primary-button" type="submit">加入今日運動</button>
+            </form>
+
+            <section class="estimate-card">
+              <div class="section-heading">
+                <p>運動建議</p>
+                <h2>膝蓋友善</h2>
+              </div>
+              <p>
+                今天如果膝蓋有壓力，就把跑跳改成快走、腳踏車或游泳。重訓日碳水不用怕，主食半份到一份都能安排。
+              </p>
+            </section>
+          </div>
+        </section>
+
+        <section class="panel" id="records" aria-labelledby="recordsTitle">
+          <div class="records-layout">
+            <section>
+              <div class="section-heading">
+                <p>今日紀錄</p>
+                <h2 id="recordsTitle">飲食與運動</h2>
+              </div>
+              <div id="foodRecords" class="record-list"></div>
+              <div id="exerciseRecords" class="record-list"></div>
+            </section>
+            <section class="daily-summary">
+              <div class="section-heading">
+                <p>每日總結</p>
+                <h2>今晚回顧</h2>
+              </div>
+              <div id="dailySummary"></div>
+              <button class="ghost-button" id="clearToday" type="button">清空今日資料</button>
+            </section>
+          </div>
+        </section>
+
+        <section class="panel" id="coach" aria-labelledby="coachTitle">
+          <div class="chat-layout">
+            <section class="chat-panel">
+              <div class="section-heading">
+                <p>AI 教練</p>
+                <h2 id="coachTitle">可以吃嗎？</h2>
+              </div>
+              <div class="chat-window" id="chatWindow" aria-live="polite"></div>
+              <form class="chat-form" id="coachForm">
+                <input
+                  name="question"
+                  placeholder="問：今天晚餐吃什麼？我可以吃蛋糕嗎？"
+                  autocomplete="off"
+                  required
+                />
+                <button class="primary-button" type="submit">送出</button>
+              </form>
+            </section>
+            <section class="quick-prompts" aria-label="快速問題">
+              <form class="ai-settings" id="aiSettingsForm">
+                <div class="section-heading">
+                  <p>AI 連線</p>
+                  <h2>教練設定</h2>
+                </div>
+                <label>
+                  OpenAI API Key
+                  <input
+                    name="apiKey"
+                    type="password"
+                    autocomplete="off"
+                    placeholder="sk-..."
+                  />
+                </label>
+                <label>
+                  模型
+                  <input name="model" type="text" value="gpt-4.1-mini" />
+                </label>
+                <button class="ghost-button" type="submit">儲存設定</button>
+                <p class="connection-status" id="aiStatus">目前使用本機陪跑回覆</p>
+              </form>
+              <button type="button">今天晚餐吃什麼？</button>
+              <button type="button">我可以吃蛋糕嗎？</button>
+              <button type="button">今天碳水會太多嗎？</button>
+              <button type="button">小腿痠怎麼辦？</button>
+              <button type="button">明天要不要重訓？</button>
+              <button type="button">我今天不想運動</button>
+              <button type="button">我想吃爆</button>
+            </section>
+          </div>
+        </section>
+
+        <section class="panel" id="trends" aria-labelledby="trendsTitle">
+          <div class="records-layout">
+            <div class="stack">
+              <form class="entry-form" id="weightForm">
+                <div class="section-heading">
+                  <p>體重紀錄</p>
+                  <h2 id="trendsTitle">趨勢</h2>
+                </div>
+                <label>今日體重 kg<input name="weight" type="number" min="30" step="0.1" required /></label>
+                <button class="primary-button" type="submit">加入體重</button>
+              </form>
+              <section class="backup-card">
+                <div class="section-heading">
+                  <p>個人資料</p>
+                  <h2>備份與還原</h2>
+                </div>
+                <div class="backup-actions">
+                  <button class="ghost-button" id="exportData" type="button">匯出備份</button>
+                  <label class="file-button">
+                    匯入備份
+                    <input id="importData" type="file" accept="application/json" />
+                  </label>
+                </div>
+                <p class="connection-status" id="backupStatus">
+                  換手機或怕資料不見時，先匯出一份備份檔。
+                </p>
+              </section>
             </div>
+            <section class="trend-card">
+              <div class="section-heading">
+                <p>近況</p>
+                <h2>體重與達標率</h2>
+              </div>
+              <div class="trend-chart" id="weightChart" aria-label="體重曲線"></div>
+              <div class="metric-row">
+                <article>
+                  <span>蛋白質達標率</span>
+                  <strong id="proteinRate">0%</strong>
+                </article>
+                <article>
+                  <span>今日運動次數</span>
+                  <strong id="exerciseCount">0</strong>
+                </article>
+              </div>
+            </section>
+          </div>
+        </section>
 
-            <!-- Daily Tasks Tab -->
-            <div id="tab-daily" class="tab-content hidden fade-in">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div class="neon-card rounded-lg p-5 border-l-4 border-blue-500">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="font-bold text-white cyber-text tracking-widest uppercase"><i class="fa-solid fa-droplet text-blue-400 mr-2 drop-shadow-[0_0_5px_#60a5fa]"></i>Hydration Log</h3>
-                            <span class="text-blue-400 font-bold text-xl cyber-text" id="daily-water-total" style="text-shadow: 0 0 8px #60a5fa;">0 ML</span>
-                        </div>
-                        <div class="flex gap-3">
-                            <button onclick="addWater(250)" class="flex-1 bg-zinc-900 border border-blue-500/50 hover:bg-blue-900/30 hover:border-blue-400 text-blue-400 py-2 rounded-sm text-sm font-bold transition-all shadow-[0_0_10px_rgba(59,130,246,0.1)]">+ 250 ML</button>
-                            <button onclick="addWater(500)" class="flex-1 bg-zinc-900 border border-blue-500/50 hover:bg-blue-900/30 hover:border-blue-400 text-blue-400 py-2 rounded-sm text-sm font-bold transition-all shadow-[0_0_10px_rgba(59,130,246,0.1)]">+ 500 ML</button>
-                            <button onclick="resetWater()" class="bg-zinc-900 border border-red-500/50 hover:bg-red-900/30 text-red-400 px-4 py-2 rounded-sm text-sm transition-all shadow-[0_0_10px_rgba(239,68,68,0.1)]" title="Reset"><i class="fa-solid fa-power-off"></i></button>
-                        </div>
-                    </div>
-                    
-                    <div class="neon-card neon-border-yellow rounded-lg p-5 border-l-4 border-neonYellow">
-                        <h3 class="font-bold text-white cyber-text tracking-widest uppercase mb-4"><i class="fa-solid fa-stopwatch text-neonYellow mr-2 drop-shadow-[0_0_5px_#fde047]"></i>Fasting Timer</h3>
-                        <div class="flex items-center gap-3">
-                            <input type="time" id="fasting-start" class="rounded-sm px-3 py-2 text-sm cyber-text w-32" onchange="saveDailyInputs()">
-                            <span class="text-zinc-500 cyber-text">TO</span>
-                            <input type="time" id="fasting-end" class="rounded-sm px-3 py-2 text-sm cyber-text w-32" onchange="saveDailyInputs()">
-                            <span class="text-xs text-neonYellow ml-2 font-bold cyber-text tracking-wider" id="fasting-hours-calc"></span>
-                        </div>
-                    </div>
-                </div>
+        <section class="panel" id="growth" aria-labelledby="growthTitle">
+          <div class="growth-layout">
+            <section class="growth-card">
+              <div class="section-heading">
+                <p>六階段長期執行模型</p>
+                <h2 id="growthTitle">不是每天有動力，是每天能回來</h2>
+              </div>
+              <div class="stage-grid" id="stageGrid"></div>
+            </section>
+            <section class="growth-card">
+              <div class="section-heading">
+                <p>一年目標</p>
+                <h2>99kg → 65kg</h2>
+              </div>
+              <div class="goal-timeline">
+                <article><span>第1～3月</span><strong>99kg → 89kg</strong></article>
+                <article><span>第4～6月</span><strong>89kg → 80kg</strong></article>
+                <article><span>第7～9月</span><strong>80kg → 73kg</strong></article>
+                <article><span>第10～12月</span><strong>73kg → 65kg</strong></article>
+              </div>
+            </section>
+            <section class="growth-card">
+              <div class="section-heading">
+                <p>我的減脂規則</p>
+                <h2>意圖 Intention</h2>
+              </div>
+              <ul class="workout-list">
+                <li><span>飲食</span>1500～1800 kcal，每餐有蛋白質</li>
+                <li><span>彈性</span>不禁甜食，每週可安排一次放鬆</li>
+                <li><span>運動</span>每週約4次，重訓2次</li>
+                <li><span>膝蓋</span>避免跑跳與高衝擊 HIIT</li>
+                <li><span>紀錄</span>有記錄比100%精準更重要</li>
+              </ul>
+            </section>
+            <section class="growth-card">
+              <div class="section-heading">
+                <p>失敗清單</p>
+                <h2>下一步回軌道</h2>
+              </div>
+              <div class="failure-list">
+                <article><strong>吃了蛋糕</strong><span>下一餐回正常，不補償性節食。</span></article>
+                <article><strong>晚餐爆量</strong><span>明天照常記錄，不放棄。</span></article>
+                <article><strong>沒運動</strong><span>明天做最低標準版。</span></article>
+                <article><strong>體重上升</strong><span>看7日平均，不看單日。</span></article>
+                <article><strong>小腿痠</strong><span>熱敷、伸展、降低強度。</span></article>
+                <article><strong>聚餐</strong><span>優先蛋白質，主食半份，飲料無糖。</span></article>
+              </div>
+            </section>
+          </div>
+        </section>
 
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    
-                    <div class="neon-card neon-border-pink rounded-lg overflow-hidden flex flex-col">
-                        <div class="bg-pink-900/20 px-5 py-4 border-b border-pink-500/30 flex items-center justify-between">
-                            <h3 class="font-bold text-white cyber-text text-lg flex items-center tracking-widest uppercase">
-                                <i class="fa-solid fa-utensils mr-2 text-neonPink" style="text-shadow: 0 0 8px #ff00ff;"></i> Nutrition Log
-                            </h3>
-                            <span class="border border-neonPink text-neonPink text-xs px-2 py-1 rounded-sm font-bold cyber-text shadow-[0_0_5px_#ff00ff]">INPUT REQ</span>
-                        </div>
-                        <div class="p-5 flex-1 flex flex-col gap-4">
-                            <p class="text-sm text-zinc-400 mb-2 border-b border-zinc-800 pb-3">外食族點餐攻略：避開隱藏地雷。不裹粉、不勾芡、不油炸、醬汁分開。</p>
-                            
-                            <div class="mb-2">
-                                <label class="block text-xs font-bold text-neonPink cyber-text tracking-widest mb-3 uppercase"><i class="fa-solid fa-bolt mr-1"></i> Quick Select Modules</label>
-                                <div class="flex flex-wrap gap-2">
-                                    <button onclick="appendDiet('超商沙拉+雞胸肉')" class="px-3 py-1.5 bg-zinc-900 border border-pink-500/40 text-pink-300 text-xs font-medium rounded-sm hover:bg-pink-900/40 hover:border-neonPink transition-all">🥗 超商沙拉+雞胸肉</button>
-                                    <button onclick="appendDiet('無糖豆漿+茶葉蛋')" class="px-3 py-1.5 bg-zinc-900 border border-pink-500/40 text-pink-300 text-xs font-medium rounded-sm hover:bg-pink-900/40 hover:border-neonPink transition-all">🥚 無糖豆漿+茶葉蛋</button>
-                                    <button onclick="appendDiet('健康水煮餐盒')" class="px-3 py-1.5 bg-zinc-900 border border-pink-500/40 text-pink-300 text-xs font-medium rounded-sm hover:bg-pink-900/40 hover:border-neonPink transition-all">🍱 健康水煮餐盒</button>
-                                    <button onclick="appendDiet('自助餐(菜多飯少/無炸物)')" class="px-3 py-1.5 bg-zinc-900 border border-pink-500/40 text-pink-300 text-xs font-medium rounded-sm hover:bg-pink-900/40 hover:border-neonPink transition-all">🥦 自助餐(無炸物)</button>
-                                    <button onclick="appendDiet('燙青菜+滷蛋切豆干')" class="px-3 py-1.5 bg-zinc-900 border border-pink-500/40 text-pink-300 text-xs font-medium rounded-sm hover:bg-pink-900/40 hover:border-neonPink transition-all">🍜 麵店(燙青菜+滷菜)</button>
-                                </div>
-                            </div>
+        <section class="panel" id="templates" aria-labelledby="templatesTitle">
+          <div class="template-layout">
+            <section class="template-card">
+              <div class="section-heading">
+                <p>Ricky 風格</p>
+                <h2 id="templatesTitle">高碳重訓日飲食</h2>
+              </div>
+              <p class="template-note">
+                結構：早餐高蛋白＋原型碳水，午餐雞胸餐盒，運動前後補乳清與地瓜/芋頭，晚餐雞胸餐盒半飯。份量已改成較適合你目前減脂期。
+              </p>
+              <div class="meal-plan">
+                <article>
+                  <span>早餐</span>
+                  <strong>水煮蛋 1 顆＋無糖優格 150g＋燕麥 20g＋奇亞籽 5g＋芭樂 100g</strong>
+                </article>
+                <article>
+                  <span>午餐</span>
+                  <strong>黑胡椒雞胸健康餐盒，飯半份或飯換菜＋海藻/蔬菜沙拉</strong>
+                </article>
+                <article>
+                  <span>運動前</span>
+                  <strong>乳清 20g＋冷藏蒸芋頭或地瓜 100～150g</strong>
+                </article>
+                <article>
+                  <span>運動後</span>
+                  <strong>乳清 25g＋冷藏蒸地瓜 150g</strong>
+                </article>
+                <article>
+                  <span>晚餐</span>
+                  <strong>椒鹽/舒肥雞胸健康餐盒，半飯＋加菜，醬料少</strong>
+                </article>
+              </div>
+              <button class="primary-button" id="applyRickyMeals" type="button">套用到今日飲食</button>
+            </section>
 
-                            <div class="mt-auto pt-2">
-                                <label class="block text-xs font-bold text-zinc-300 cyber-text tracking-widest mb-2 uppercase"><i class="fa-solid fa-keyboard text-zinc-500 mr-1"></i> Manual Input Override</label>
-                                <textarea id="diet-log-input" rows="3" class="w-full rounded-sm px-3 py-2 text-sm" placeholder="點擊上方按鈕快速輸入，或在此手動輸入今日飲食內容..." onchange="saveDailyInputs()"></textarea>
-                                <div class="text-right mt-2">
-                                    <button onclick="saveDailyInputs(); showToast('飲食紀錄已同步');" class="btn-neon-pink px-4 py-1.5 rounded-sm text-xs font-bold cyber-text tracking-widest uppercase">Save Log</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            <section class="template-card">
+              <div class="section-heading">
+                <p>Ricky 風格</p>
+                <h2>器械重訓菜單</h2>
+              </div>
+              <p class="template-note">
+                原型是短熱身、背部器械多組、手臂/腿部輔助、短收尾有氧與伸展。這版保留結構，但把膝蓋壓力調低。
+              </p>
+              <ul class="workout-list">
+                <li><span>熱身</span>跑步機快走 6～8 分鐘，坡度 2～4%，速度舒服可講話</li>
+                <li><span>背</span>高位下拉機 12 下 × 3 組</li>
+                <li><span>背</span>坐姿划船 12 下 × 3 組</li>
+                <li><span>肩背</span>反向飛鳥 12 下 × 2～3 組</li>
+                <li><span>腿</span>腿推機 12 下 × 3 組，膝蓋不鎖死</li>
+                <li><span>臀</span>臀外展機 15 下 × 3 組</li>
+                <li><span>手臂</span>三頭下壓或三頭機 12 下 × 2 組</li>
+                <li><span>有氧</span>橢圓機或腳踏車 8～12 分鐘</li>
+                <li><span>伸展</span>背闊肌、胸、肩後側、小腿各 30 秒 × 2</li>
+              </ul>
+              <details class="form-guide">
+                <summary>姿勢說明</summary>
+                <article>
+                  <strong>高位下拉機</strong>
+                  <p>坐穩、大腿墊壓住，胸口微開。先讓肩膀遠離耳朵，再把手肘往下拉，不需要拉到脖子後面。</p>
+                  <small>感覺：背闊肌出力，不是前臂先爆。</small>
+                </article>
+                <article>
+                  <strong>坐姿划船</strong>
+                  <p>身體固定，手肘貼近身體往後拉。拉到背有夾住感就停，不需要用腰往後倒。</p>
+                  <small>感覺：中背、肩胛附近發力。</small>
+                </article>
+                <article>
+                  <strong>反向飛鳥</strong>
+                  <p>手肘微彎，想像用手肘把把手往外打開。重量寧可輕，肩膀不要聳起來。</p>
+                  <small>感覺：肩膀後側與上背，不是脖子緊。</small>
+                </article>
+                <article>
+                  <strong>腿推機</strong>
+                  <p>腳放平台中間略高，膝蓋跟腳尖同方向。下放不要追求太深，膝蓋舒服、腰不離墊優先。</p>
+                  <small>膝蓋有壓力時：縮小角度、降重量、放慢速度。</small>
+                </article>
+                <article>
+                  <strong>三頭下壓</strong>
+                  <p>手肘固定在身體兩側，把繩索或把手往下壓到底，慢慢回來。身體不要前後晃。</p>
+                  <small>感覺：手臂後側出力。</small>
+                </article>
+                <article>
+                  <strong>收尾有氧</strong>
+                  <p>橢圓機或腳踏車維持可以講話的強度。小腿痠就降阻力，不用硬拚。</p>
+                  <small>目標：恢復與消耗，不是把自己操壞。</small>
+                </article>
+              </details>
+              <button class="primary-button" id="applyRickyWorkout" type="button">套用到今日運動</button>
+            </section>
 
-                    <div class="neon-card rounded-lg overflow-hidden flex flex-col border-t-4 border-t-neonCyan">
-                        <div class="bg-cyan-900/20 px-5 py-4 border-b border-cyan-500/30 flex items-center justify-between">
-                            <h3 class="font-bold text-white cyber-text text-lg flex items-center tracking-widest uppercase">
-                                <i class="fa-solid fa-person-walking mr-2 text-neonCyan" style="text-shadow: 0 0 8px #0ff;"></i> Training Plan
-                            </h3>
-                            <span class="border border-neonCyan text-neonCyan text-xs px-2 py-1 rounded-sm font-bold cyber-text shadow-[0_0_5px_#0ff]" id="exercise-phase-badge">PHASE 1</span>
-                        </div>
-                        <div class="p-5 flex-1 flex flex-col gap-4">
-                            <p class="text-sm text-zinc-400 mb-2">System note: 優先執行「完全無跳躍、低衝擊」的防護協議以保護膝蓋關節。</p>
-                            
-                            <div class="bg-zinc-900 rounded-sm p-4 border border-zinc-700 relative overflow-hidden group">
-                                <div class="absolute left-0 top-0 w-1 h-full bg-neonCyan group-hover:shadow-[0_0_10px_#0ff] transition-shadow"></div>
-                                <h4 class="font-bold text-white text-lg mb-3 cyber-text tracking-wider" id="exercise-title">平地健走 / 室內健身車</h4>
-                                
-                                <div class="space-y-4 mt-2 text-sm text-zinc-300" id="exercise-details">
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-3 mt-auto pt-4">
-                                <div class="bg-zinc-900 border border-zinc-700 rounded-sm p-3 text-center cursor-pointer hover:border-neonCyan hover:bg-cyan-900/20 transition-all group" onclick="toggleExerciseDone(true)" id="btn-ex-done">
-                                    <i class="fa-solid fa-check-circle text-zinc-500 text-xl mb-2 group-hover:text-neonCyan transition-colors" id="icon-ex-done"></i>
-                                    <div class="text-xs font-bold text-zinc-400 cyber-text tracking-widest uppercase group-hover:text-white transition-colors" id="text-ex-done">Execute</div>
-                                </div>
-                                <div class="bg-zinc-900 border border-zinc-700 rounded-sm p-3 text-center cursor-pointer hover:border-zinc-500 transition-all" onclick="toggleExerciseDone(false)" id="btn-ex-skip">
-                                    <i class="fa-solid fa-bed text-zinc-600 text-xl mb-2"></i>
-                                    <div class="text-xs font-bold text-zinc-500 cyber-text tracking-widest uppercase">Standby (Rest)</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Yearly Plan Tab -->
-            <div id="tab-plan" class="tab-content hidden fade-in">
-                <div class="neon-card rounded-lg p-6 border-l-4 border-l-neonYellow">
-                    <h3 class="font-bold text-white cyber-text text-xl mb-8 tracking-widest uppercase" style="text-shadow: 0 0 10px rgba(255,255,255,0.3);">System Roadmap (kg → 75kg)</h3>
-                    
-                    <div class="relative border-l border-zinc-700 ml-4 space-y-10 pb-4">
-                        
-                        <div class="relative pl-8">
-                            <div class="absolute w-3 h-3 bg-neonCyan rounded-none -left-[6.5px] top-1.5 shadow-[0_0_10px_#0ff] rotate-45"></div>
-                            <h4 class="font-bold text-lg text-white cyber-text tracking-wider uppercase mb-1">Phase 1: Adaptation (M1-M3)</h4>
-                            <p class="text-xs font-bold text-neonCyan cyber-text mb-3 tracking-widest">Target:  → 95kg</p>
-                            <div class="text-sm text-zinc-400 space-y-2 bg-zinc-900 p-4 border border-zinc-800 rounded-sm">
-                                <p><strong class="text-white">Strategy:</strong> 飲食控制為主，運動為輔。戒除含糖飲料與宵夜。</p>
-                                <p><strong class="text-white">Action:</strong> 無跳躍、低衝擊有氧（快走、游泳、健身車），每週 3-4 次，每次 30 分鐘。</p>
-                                <p><strong class="text-neonCyan">Focus:</strong> 保護膝蓋關節，不追求劇烈運動，讓身體適應健康的食物原型。</p>
-                            </div>
-                        </div>
-
-                        <div class="relative pl-8">
-                            <div class="absolute w-3 h-3 bg-zinc-600 rounded-none -left-[6.5px] top-1.5 rotate-45"></div>
-                            <h4 class="font-bold text-lg text-white cyber-text tracking-wider uppercase mb-1">Phase 2: Acceleration (M4-M6)</h4>
-                            <p class="text-xs font-bold text-zinc-500 cyber-text mb-3 tracking-widest">Target: 95kg → 86kg</p>
-                            <div class="text-sm text-zinc-400 space-y-2 bg-zinc-900 p-4 border border-zinc-800 rounded-sm">
-                                <p><strong class="text-white">Strategy:</strong> 加入輕度阻力訓練，提升基礎代謝率。</p>
-                                <p><strong class="text-white">Action:</strong> 有氧拉長至 40 分。加入自體重訓（如靠牆伏地挺身）。</p>
-                                <p><strong class="text-neonCyan">Focus:</strong> 突破停滯期，增加蛋白質攝取以修復肌肉。</p>
-                            </div>
-                        </div>
-
-                        <div class="relative pl-8">
-                            <div class="absolute w-3 h-3 bg-zinc-600 rounded-none -left-[6.5px] top-1.5 rotate-45"></div>
-                            <h4 class="font-bold text-lg text-white cyber-text tracking-wider uppercase mb-1">Phase 3: Sculpting (M7-M9)</h4>
-                            <p class="text-xs font-bold text-zinc-500 cyber-text mb-3 tracking-widest">Target: 86kg → 80kg</p>
-                            <div class="text-sm text-zinc-400 space-y-2 bg-zinc-900 p-4 border border-zinc-800 rounded-sm">
-                                <p><strong class="text-white">Strategy:</strong> 增加運動強度，飲食可採溫和的 168 間歇性斷食。</p>
-                                <p><strong class="text-white">Action:</strong> 使用機械式器材或加入些微間歇有氧。</p>
-                                <p><strong class="text-neonCyan">Focus:</strong> 身型明顯縮小，關注體脂率而非純體重。</p>
-                            </div>
-                        </div>
-
-                        <div class="relative pl-8">
-                            <div class="absolute w-3 h-3 bg-zinc-600 rounded-none -left-[6.5px] top-1.5 rotate-45"></div>
-                            <h4 class="font-bold text-lg text-white cyber-text tracking-wider uppercase mb-1">Phase 4: Integration (M10-M12)</h4>
-                            <p class="text-xs font-bold text-zinc-500 cyber-text mb-3 tracking-widest">Target: 80kg → 75kg</p>
-                            <div class="text-sm text-zinc-400 space-y-2 bg-zinc-900 p-4 border border-zinc-800 rounded-sm">
-                                <p><strong class="text-white">Strategy:</strong> 健康飲食與運動徹底融入生活，建立直覺性飲食。</p>
-                                <p><strong class="text-white">Action:</strong> 培養運動興趣，每週保持 150 分鐘中高強度運動。</p>
-                                <p><strong class="text-neonCyan">Focus:</strong> 學習大餐後的平衡，不復胖，完成 S 號衣服全包目標。</p>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-
-            <!-- Settings Tab -->
-            <div id="tab-settings" class="tab-content hidden fade-in">
-                <div class="neon-card rounded-lg p-6 border-l-4 border-l-neonCyan mb-6">
-                    <div class="flex items-center gap-3 mb-6">
-                        <i class="fa-solid fa-server text-neonCyan text-3xl" style="text-shadow: 0 0 10px #0ff;"></i>
-                        <h3 class="font-bold text-white cyber-text text-xl tracking-widest uppercase">Database Connection</h3>
-                    </div>
-                    
-                    <p class="text-sm text-zinc-400 mb-6 leading-relaxed">
-                        本地端已切換為純記憶體展示模式（防護策略啟動中）。欲建立永久性的雲端備份與跨裝置同步，請將 Google Apps Script (GAS) Web App Endpoint 連結貼入下方。
-                        <br><br>
-                        <span class="text-neonPink">＊小提醒：如果推送到 GitHub Pages，建議直接在 HTML 原始碼中將 `let gasUrl = '';` 替換為您的專屬網址！</span>
-                    </p>
-
-                    <div class="bg-zinc-900 border border-zinc-700 rounded-sm p-5 mb-8 relative">
-                        <div class="absolute top-0 right-0 px-2 py-1 bg-zinc-800 text-zinc-500 text-[10px] cyber-text tracking-widest uppercase border-b border-l border-zinc-700">Endpoint Config</div>
-                        <label class="block text-xs font-bold text-neonCyan cyber-text tracking-widest mb-3 uppercase">GAS URL Endpoint:</label>
-                        <div class="flex gap-2">
-                            <input type="text" id="gas-url-input" placeholder="https://script.google.com/macros/s/.../exec" class="flex-1 rounded-sm px-4 py-2 text-sm font-mono bg-black text-neonCyan border-zinc-700 focus:border-neonCyan placeholder-zinc-700">
-                            <button onclick="saveGasUrl()" class="btn-neon px-6 py-2 rounded-sm font-bold transition-colors cyber-text tracking-wider uppercase">Connect</button>
-                        </div>
-                        <div class="flex items-center justify-between mt-4">
-                            <p class="text-xs font-mono" id="gas-status-text">Status: OFFLINE (In-Memory Sandbox)</p>
-                            <div class="flex gap-2" id="gas-action-btns" style="display: none;">
-                                <button onclick="forceSyncToGas()" class="bg-zinc-800 border border-blue-500/50 hover:bg-blue-900/30 text-blue-400 px-3 py-1.5 rounded-sm text-xs font-bold transition-all cyber-text tracking-widest uppercase"><i class="fa-solid fa-upload mr-1"></i> Push</button>
-                                <button onclick="loadFromGas()" class="bg-zinc-800 border border-neonCyan/50 hover:bg-cyan-900/30 text-neonCyan px-3 py-1.5 rounded-sm text-xs font-bold transition-all cyber-text tracking-widest uppercase"><i class="fa-solid fa-download mr-1"></i> Pull</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="border-t border-zinc-800 pt-6">
-                        <h4 class="font-bold text-white mb-4 cyber-text tracking-widest uppercase text-sm"><i class="fa-solid fa-code mr-2 text-zinc-500"></i> Deployment Script (v2.0)</h4>
-                        <ol class="list-decimal list-inside text-sm text-zinc-400 space-y-2 mb-4 font-mono text-xs">
-                            <li>Create sheet named <code>WeightData</code></li>
-                            <li>Headers A1:G1 -> <code>Date, Weight, Water, Fasting, Diet, Exercise, Notes</code></li>
-                            <li>Open Apps Script, paste the code below.</li>
-                            <li>Deploy as Web App -> Execute as 'Me', Access 'Anyone'.</li>
-                        </ol>
-                        
-                        <div class="relative group mt-4">
-                            <button onclick="copyGasCode()" class="absolute top-2 right-2 bg-zinc-700 hover:bg-neonCyan hover:text-black text-zinc-300 text-xs px-3 py-1 rounded-sm transition-all font-bold cyber-text tracking-wider uppercase z-10 opacity-50 group-hover:opacity-100">
-                                <i class="fa-regular fa-copy mr-1"></i> Copy
-                            </button>
-                            <pre class="bg-black text-green-400 p-4 rounded-sm text-xs overflow-x-auto font-mono leading-relaxed border border-zinc-800 shadow-inner" id="gas-code-block">
-function doPost(e) {
-  try {
-    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("WeightData");
-    if (!sheet) {
-      sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet("WeightData");
-      sheet.appendRow(["Date", "Weight", "Water", "Fasting", "Diet", "Exercise", "Notes"]);
-    }
-    var data = JSON.parse(e.postData.contents);
-    
-    var dateStr = data.date;
-    var fastStr = (data.fastStart && data.fastEnd) ? data.fastStart + "~" + data.fastEnd : "";
-    var exStr = data.exerciseDone ? "完成" : "未完成";
-    
-    var dataRange = sheet.getDataRange();
-    var values = dataRange.getValues();
-    var rowIndex = -1;
-    
-    for (var i = 1; i < values.length; i++) {
-      var rowDate = values[i][0];
-      var formattedRowDate = (rowDate instanceof Date) ? Utilities.formatDate(rowDate, Session.getScriptTimeZone(), "yyyy-MM-dd") : String(rowDate).substring(0,10);
-      if (formattedRowDate === dateStr) {
-        rowIndex = i + 1;
-        break;
-      }
-    }
-    
-    var rowData = [
-      dateStr, 
-      data.weight, 
-      data.water || 0,
-      fastStr,
-      data.dietLog || "",
-      exStr,
-      data.notes || ""
-    ];
-    
-    if (rowIndex > -1) {
-      sheet.getRange(rowIndex, 1, 1, rowData.length).setValues([rowData]);
-    } else {
-      sheet.appendRow(rowData);
-    }
-    
-    return ContentService.createTextOutput(JSON.stringify({
-      "status": "success",
-      "message": "Logged successfully"
-    })).setMimeType(ContentService.MimeType.JSON);
-  } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({
-      "status": "error",
-      "message": err.toString()
-    })).setMimeType(ContentService.MimeType.JSON);
-  }
-}
-
-function doGet(e) {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("WeightData");
-  if (!sheet) return ContentService.createTextOutput(JSON.stringify({"status": "error"})).setMimeType(ContentService.MimeType.JSON);
-  
-  var data = sheet.getDataRange().getValues();
-  var result = data.slice(1).map(function(row) {
-    var dateVal = row[0];
-    var dateStr = (dateVal instanceof Date) ? Utilities.formatDate(dateVal, Session.getScriptTimeZone(), "yyyy-MM-dd") : String(dateVal).substring(0,10);
-    var fastParts = row[3] ? String(row[3]).split('~') : ['12:00', '20:00'];
-    
-    return {
-      date: dateStr,
-      weight: row[1] || 0,
-      water: row[2] || 0,
-      fastStart: fastParts[0] || '12:00',
-      fastEnd: fastParts[1] || '20:00',
-      dietLog: row[4] || "",
-      exerciseDone: (row[5] === "完成"),
-      notes: row[6] || ""
-    };
-  });
-  
-  return ContentService.createTextOutput(JSON.stringify({
-    "status": "success",
-    "data": result
-  })).setMimeType(ContentService.MimeType.JSON);
-}
-                            </pre>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-    </main>
-
-    <!-- Modals & Toasts -->
-    <div id="log-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
-        <div class="neon-card rounded-none border border-neonCyan shadow-[0_0_30px_rgba(0,255,255,0.2)] w-full max-w-sm transform scale-95 transition-transform duration-300" id="log-modal-content">
-            <div class="px-6 py-4 border-b border-cyan-900/50 flex justify-between items-center bg-cyan-900/20">
-                <h3 class="font-bold text-lg text-white cyber-text tracking-widest uppercase" style="text-shadow: 0 0 8px #0ff;">INPUT MASS</h3>
-                <button onclick="closeLogModal()" class="text-zinc-500 hover:text-neonPink transition-colors">
-                    <i class="fa-solid fa-xmark text-xl"></i>
-                </button>
-            </div>
-            <div class="p-6">
-                <div class="mb-5">
-                    <label class="block text-xs font-bold text-neonCyan cyber-text tracking-widest mb-2 uppercase">Mass (KG)</label>
-                    <input type="number" id="input-weight" step="0.1" class="w-full text-2xl font-bold text-center py-3 cyber-text">
-                </div>
-                <div class="mb-8">
-                    <label class="block text-xs font-bold text-zinc-400 cyber-text tracking-widest mb-2 uppercase">System Notes (Optional)</label>
-                    <input type="text" id="input-notes" placeholder="Any anomalies today?" class="w-full py-2 px-3 text-sm">
-                </div>
-                <button onclick="saveWeight()" class="w-full btn-neon py-3 font-bold tracking-widest uppercase cyber-text text-lg flex justify-center items-center gap-2" id="btn-save-weight">
-                    [ TRANSMIT DATA ]
-                </button>
-            </div>
-        </div>
+            <section class="template-card">
+              <div class="section-heading">
+                <p>執行規則</p>
+                <h2>照他的邏輯，不照他的份量硬吃</h2>
+              </div>
+              <div class="failure-list">
+                <article><strong>重訓日</strong><span>碳水放在早餐、運動前、運動後，晚餐半飯。</span></article>
+                <article><strong>外食</strong><span>雞胸/魚/蛋白質優先，飯半份，醬料少，加蔬菜纖維。</span></article>
+                <article><strong>紀錄</strong><span>用「早餐、午餐、運動前、運動後、晚餐」固定格式。</span></article>
+                <article><strong>甜食</strong><span>可計入熱量，放運動後或白天，控時控量。</span></article>
+              </div>
+              <p class="connection-status" id="templateStatus">模板尚未套用。</p>
+            </section>
+          </div>
+        </section>
+      </main>
     </div>
 
-    <div id="toast" class="fixed bottom-6 left-1/2 transform -translate-x-1/2 border bg-black text-white px-6 py-3 rounded-sm shadow-[0_0_15px_rgba(0,0,0,0.8)] text-sm font-bold z-50 flex items-center gap-3 transition-all duration-300 opacity-0 pointer-events-none translate-y-4 cyber-text tracking-wider uppercase">
-        <i class="fa-solid fa-circle-check text-neonCyan" id="toast-icon" style="text-shadow: 0 0 8px #0ff;"></i>
-        <span id="toast-msg">ACTION SUCCESS</span>
-    </div>
-
-    <script>
-        const INITIAL_WEIGHT = 103.0;
-        const GOAL_WEIGHT = 75.0; 
-        const HEIGHT_CM = 159;
-        const HEIGHT_M = HEIGHT_CM / 100;
-        
-        // 【重要】將 localStorage 移除，改用純記憶體陣列確保預覽器正常運作
-        // 加入預設的展示資料讓您可以預覽圖表變化
-        let weightData = []; 
-        let chartInstance = null;
-        let gasUrl = ''; // 若發布到 GitHub Pages，可以直接把這行改成 let gasUrl = '您的GAS網址';
-
-        function getTodayStr() {
-            return new Date().toISOString().split('T')[0];
-        }
-
-        // 產生預設的展示資料 (用於沙盒預覽)
-        function generateDummyData() {
-            const today = new Date();
-            const dummyData = [];
-            for (let i = 2; i >= 0; i--) {
-                const date = new Date(today);
-                date.setDate(date.getDate() - i);
-                const dateStr = date.toISOString().split('T')[0];
-                dummyData.push({
-                    date: dateStr,
-                    weight: INITIAL_WEIGHT - (2 - i) * 0.4, // 模擬體重微降
-                    notes: i === 2 ? 'System Init' : '',
-                    water: i === 0 ? 0 : 3100,
-                    fastStart: '12:00',
-                    fastEnd: '20:00',
-                    dietLog: '',
-                    exerciseDone: i !== 0
-                });
-            }
-            return dummyData;
-        }
-
-        function getTodayData() {
-            const today = getTodayStr();
-            let todayData = weightData.find(d => d.date === today);
-            if (!todayData) {
-                const lastWeight = weightData.length > 0 ? weightData[weightData.length-1].weight : INITIAL_WEIGHT;
-                const lastFastStart = weightData.length > 0 ? (weightData[weightData.length-1].fastStart || '12:00') : '12:00';
-                const lastFastEnd = weightData.length > 0 ? (weightData[weightData.length-1].fastEnd || '20:00') : '20:00';
-                
-                todayData = { 
-                    date: today, weight: lastWeight, notes: '', water: 0, 
-                    fastStart: lastFastStart, fastEnd: lastFastEnd, dietLog: '', exerciseDone: false 
-                };
-                weightData.push(todayData);
-            }
-            return todayData;
-        }
-
-        function saveAllData() {
-            // 在純記憶體模式下，只需更新 UI 與發送到 GAS
-            updateDashboard();
-            updateDailyInputsUI();
-            if (gasUrl) syncToGasInBackground();
-        }
-
-        function initData() {
-            // 載入預設的展示資料，讓預覽環境直接有東西看
-            weightData = generateDummyData();
-            
-            getTodayData(); // 確保今天有資料
-            
-            if(gasUrl) {
-                document.getElementById('gas-url-input').value = gasUrl;
-                document.getElementById('gas-status-text').innerHTML = `<span class="text-neonCyan cyber-text">STATUS: ONLINE (SYNC ACTIVE)</span>`;
-                document.getElementById('gas-action-btns').style.display = 'flex';
-                // 如果有 GAS URL，我們可以在初始化時自動抓取最新資料覆蓋 dummy data
-                loadFromGasSilently();
-            }
-
-            updateDashboard();
-            setupDailyContent();
-            updateDailyInputsUI();
-        }
-
-        function switchTab(tabId) {
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('border-cyan-500/50', 'text-neonCyan', 'border-pink-500/50', 'text-neonPink', 'border-yellow-500/50', 'text-neonYellow');
-                btn.classList.add('border-transparent', 'text-zinc-400');
-            });
-            
-            const activeBtn = document.getElementById(`nav-${tabId}`);
-            activeBtn.classList.remove('border-transparent', 'text-zinc-400');
-            
-            if(tabId === 'dashboard' || tabId === 'settings') activeBtn.classList.add('border-cyan-500/50', 'text-neonCyan');
-            else if(tabId === 'daily') activeBtn.classList.add('border-pink-500/50', 'text-neonPink');
-            else if(tabId === 'plan') activeBtn.classList.add('border-yellow-500/50', 'text-neonYellow');
-
-            const titles = {
-                'dashboard': 'SYS.DASHBOARD',
-                'daily': 'DAILY.TASKS',
-                'plan': 'YEAR.PLAN',
-                'settings': 'DATABASE.CONFIG'
-            };
-            document.getElementById('page-title').innerText = titles[tabId];
-
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-
-            if(tabId === 'dashboard' && chartInstance) chartInstance.resize();
-        }
-
-        function updateDashboard() {
-            const latestRecord = weightData[weightData.length - 1];
-            const currentWeight = latestRecord.weight;
-            const diff = currentWeight - INITIAL_WEIGHT;
-            
-            document.getElementById('dash-current-weight').innerText = currentWeight.toFixed(1);
-            document.getElementById('dash-goal-weight').innerText = GOAL_WEIGHT.toFixed(1);
-            
-            const diffEl = document.getElementById('dash-weight-diff');
-            if(diff <= 0) {
-                diffEl.innerHTML = `<i class="fa-solid fa-arrow-down"></i> ${diff.toFixed(1)} kg`;
-                diffEl.className = "mt-3 text-sm font-bold cyber-text tracking-wider text-neonCyan";
-            } else {
-                diffEl.innerHTML = `<i class="fa-solid fa-arrow-up"></i> +${diff.toFixed(1)} kg`;
-                diffEl.className = "mt-3 text-sm font-bold cyber-text tracking-wider text-neonPink";
-            }
-
-            const totalToLose = INITIAL_WEIGHT - GOAL_WEIGHT;
-            const lost = INITIAL_WEIGHT - currentWeight;
-            let progress = (lost / totalToLose) * 100;
-            if(progress < 0) progress = 0;
-            if(progress > 100) progress = 100;
-            document.getElementById('dash-progress-bar').style.width = `${progress}%`;
-
-            const bmi = currentWeight / (HEIGHT_M * HEIGHT_M);
-            document.getElementById('dash-bmi').innerText = bmi.toFixed(1);
-            
-            const bmiStatusEl = document.getElementById('dash-bmi-status');
-            if(bmi >= 35) {
-                bmiStatusEl.innerText = "CRITICAL (PROTECT JOINTS)";
-                bmiStatusEl.className = "mt-3 text-[10px] font-bold py-1 px-2 rounded-sm inline-block bg-pink-900/30 border border-neonPink text-neonPink w-max uppercase tracking-widest";
-            } else if (bmi >= 27) {
-                bmiStatusEl.innerText = "WARNING (OVERWEIGHT)";
-                bmiStatusEl.className = "mt-3 text-[10px] font-bold py-1 px-2 rounded-sm inline-block bg-yellow-900/30 border border-neonYellow text-neonYellow w-max uppercase tracking-widest";
-            } else {
-                bmiStatusEl.innerText = "OPTIMAL RANGE";
-                bmiStatusEl.className = "mt-3 text-[10px] font-bold py-1 px-2 rounded-sm inline-block bg-cyan-900/30 border border-neonCyan text-neonCyan w-max uppercase tracking-widest";
-            }
-
-            const startDate = new Date(weightData[0].date);
-            const today = new Date();
-            const diffDays = Math.ceil(Math.abs(today - startDate) / (1000 * 60 * 60 * 24)) || 1;
-            document.getElementById('dash-days').innerText = `DAY ${diffDays}`;
-
-            const phaseEl = document.getElementById('dash-phase');
-            if(diffDays <= 90) phaseEl.innerText = "PHASE 1: ADAPTATION";
-            else if(diffDays <= 180) phaseEl.innerText = "PHASE 2: ACCELERATION";
-            else if(diffDays <= 270) phaseEl.innerText = "PHASE 3: SCULPTING";
-            else phaseEl.innerText = "PHASE 4: INTEGRATION";
-
-            document.getElementById('input-weight').value = currentWeight.toFixed(1);
-
-            const todayData = getTodayData();
-            
-            document.getElementById('dash-water-text').innerText = todayData.water;
-            let waterPercent = (todayData.water / 3100) * 100;
-            if(waterPercent > 100) waterPercent = 100;
-            document.getElementById('dash-water-fill').style.height = `${waterPercent}%`;
-            
-            if(todayData.fastStart && todayData.fastEnd) {
-                document.getElementById('dash-fasting-text').innerText = `${todayData.fastStart} - ${todayData.fastEnd}`;
-            } else {
-                document.getElementById('dash-fasting-text').innerText = "NOT SET";
-            }
-
-            const exStatus = document.getElementById('dash-exercise-status');
-            const exCard = document.getElementById('dash-exercise-card');
-            const exIcon = document.getElementById('dash-exercise-icon');
-            const exLabel = document.getElementById('dash-exercise-label');
-
-            if(todayData.exerciseDone) {
-                exStatus.innerText = "COMPLETED";
-                exStatus.className = "text-lg font-bold text-neonCyan mt-1 cyber-text tracking-wider";
-                exCard.className = "bg-cyan-900/20 border border-neonCyan rounded-md p-4 flex flex-col justify-center items-center text-center transition-all shadow-[0_0_15px_rgba(0,255,255,0.1)]";
-                exIcon.className = "fa-solid fa-person-running text-neonCyan text-2xl mb-2 drop-shadow-[0_0_5px_#0ff]";
-                exLabel.className = "text-xs text-cyan-300 font-bold cyber-text tracking-widest uppercase";
-            } else {
-                exStatus.innerText = "OFFLINE";
-                exStatus.className = "text-lg font-bold text-zinc-500 mt-1 cyber-text tracking-wider";
-                exCard.className = "bg-zinc-900 border border-zinc-700 rounded-md p-4 flex flex-col justify-center items-center text-center transition-all";
-                exIcon.className = "fa-solid fa-person-running text-zinc-600 text-2xl mb-2";
-                exLabel.className = "text-xs text-zinc-500 font-bold cyber-text tracking-widest uppercase";
-            }
-
-            const warningEl = document.getElementById('dash-todo-warning');
-            if(todayData.water < 3100 || !todayData.exerciseDone || !todayData.dietLog) {
-                warningEl.classList.remove('hidden');
-            } else {
-                warningEl.classList.add('hidden');
-            }
-
-            renderChart();
-        }
-
-        function renderChart() {
-            const ctx = document.getElementById('weightChart').getContext('2d');
-            Chart.defaults.color = '#a1a1aa'; 
-            Chart.defaults.font.family = '"Orbitron", sans-serif';
-
-            const labels = weightData.map(d => d.date.substring(5));
-            const dataPoints = weightData.map(d => d.weight);
-
-            if(labels.length === 1) {
-                labels.push('GOAL');
-                dataPoints.push(GOAL_WEIGHT);
-            }
-
-            if(chartInstance) chartInstance.destroy();
-
-            chartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Mass (KG)',
-                        data: dataPoints,
-                        borderColor: '#0ff', 
-                        backgroundColor: 'rgba(0, 255, 255, 0.1)',
-                        borderWidth: 2,
-                        pointBackgroundColor: '#000',
-                        pointBorderColor: '#0ff',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6,
-                        pointHoverBackgroundColor: '#0ff',
-                        fill: true,
-                        tension: 0.3
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.9)',
-                            titleColor: '#0ff',
-                            bodyColor: '#fff',
-                            borderColor: '#0ff',
-                            borderWidth: 1,
-                            padding: 10,
-                            displayColors: false,
-                            callbacks: { label: (ctx) => `${ctx.parsed.y} KG` }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            suggestedMin: GOAL_WEIGHT - 5,
-                            suggestedMax: INITIAL_WEIGHT + 2,
-                            grid: { color: 'rgba(63, 63, 70, 0.3)' }, 
-                            border: { display: false }
-                        },
-                        x: {
-                            grid: { display: false },
-                            border: { color: 'rgba(63, 63, 70, 0.5)' }
-                        }
-                    }
-                }
-            });
-        }
-
-        function setupDailyContent() {
-            const diffDays = Math.ceil(Math.abs(new Date() - new Date(weightData[0].date)) / (1000 * 60 * 60 * 24)) || 1;
-            const exBadge = document.getElementById('exercise-phase-badge');
-            const exTitle = document.getElementById('exercise-title');
-            const exDetails = document.getElementById('exercise-details');
-
-            if(diffDays <= 90) {
-                exBadge.innerText = "PHASE 1: LOW IMPACT";
-                exTitle.innerText = "平地健走 / 室內健身車";
-                if(exDetails) exDetails.innerHTML = `
-                    <div class="flex items-start gap-3">
-                        <span class="bg-cyan-900/40 border border-neonCyan text-neonCyan px-2 py-0.5 rounded-sm text-[10px] font-bold cyber-text uppercase tracking-widest shrink-0">PREP 5M</span>
-                        <span>轉動腳踝、膝蓋微彎伸展，讓關節分泌滑液。</span>
-                    </div>
-                    <div class="flex items-start gap-3">
-                        <span class="bg-neonCyan text-black px-2 py-0.5 rounded-sm text-[10px] font-bold cyber-text uppercase tracking-widest shadow-[0_0_5px_#0ff] shrink-0">MAIN 30M</span>
-                        <span>步伐放穩，腳跟先著地。保持「有點喘但能講話」的速度。膝蓋不適改為空中腳踏車。</span>
-                    </div>
-                    <div class="flex items-start gap-3">
-                        <span class="bg-cyan-900/40 border border-neonCyan text-neonCyan px-2 py-0.5 rounded-sm text-[10px] font-bold cyber-text uppercase tracking-widest shrink-0">COOL 5M</span>
-                        <span>拉伸小腿肚與大腿前側，減緩肌肉緊繃。</span>
-                    </div>
-                `;
-            } else if (diffDays <= 180) {
-                exBadge.innerText = "PHASE 2: LIGHT RESISTANCE";
-                exTitle.innerText = "快走40分 + 靠牆伏地挺身";
-            } else {
-                exBadge.innerText = "PHASE 3+: SCULPTING";
-                exTitle.innerText = "輕度重訓 / 坡道快走";
-            }
-        }
-
-        function appendDiet(foodText) {
-            const inputEl = document.getElementById('diet-log-input');
-            if(inputEl.value.trim() !== '') {
-                inputEl.value += '、' + foodText;
-            } else {
-                inputEl.value = foodText;
-            }
-            saveDailyInputs();
-            showToast(`ADDED: ${foodText}`);
-        }
-
-        function updateDailyInputsUI() {
-            const todayData = getTodayData();
-            
-            const waterEl = document.getElementById('daily-water-total');
-            if(waterEl) waterEl.innerText = todayData.water + ' ML';
-            
-            const fStartEl = document.getElementById('fasting-start');
-            const fEndEl = document.getElementById('fasting-end');
-            if(fStartEl && fEndEl) {
-                fStartEl.value = todayData.fastStart;
-                fEndEl.value = todayData.fastEnd;
-                calcFastingHours();
-            }
-            
-            const dietEl = document.getElementById('diet-log-input');
-            if(dietEl) dietEl.value = todayData.dietLog || '';
-            
-            const btnDone = document.getElementById('btn-ex-done');
-            const iconDone = document.getElementById('icon-ex-done');
-            const textDone = document.getElementById('text-ex-done');
-            
-            if(btnDone) {
-                if(todayData.exerciseDone) {
-                    btnDone.classList.add('bg-cyan-900/30', 'border-neonCyan');
-                    btnDone.classList.remove('bg-zinc-900', 'border-zinc-700');
-                    iconDone.classList.add('text-neonCyan');
-                    iconDone.classList.remove('text-zinc-500');
-                    iconDone.style.textShadow = '0 0 10px #0ff';
-                    textDone.classList.add('text-neonCyan');
-                    textDone.classList.remove('text-zinc-400');
-                } else {
-                    btnDone.classList.remove('bg-cyan-900/30', 'border-neonCyan');
-                    btnDone.classList.add('bg-zinc-900', 'border-zinc-700');
-                    iconDone.classList.remove('text-neonCyan');
-                    iconDone.classList.add('text-zinc-500');
-                    iconDone.style.textShadow = 'none';
-                    textDone.classList.remove('text-neonCyan');
-                    textDone.classList.add('text-zinc-400');
-                }
-            }
-        }
-
-        function addWater(amount) {
-            const todayData = getTodayData();
-            todayData.water += amount;
-            saveAllData();
-            showToast(`HYDRATION +${amount}ML`);
-        }
-
-        function resetWater() {
-            const todayData = getTodayData();
-            todayData.water = 0;
-            saveAllData();
-            showToast(`HYDRATION RESET`);
-        }
-
-        function calcFastingHours() {
-            const start = document.getElementById('fasting-start').value;
-            const end = document.getElementById('fasting-end').value;
-            const calcEl = document.getElementById('fasting-hours-calc');
-            
-            if(start && end && calcEl) {
-                let [sh, sm] = start.split(':').map(Number);
-                let [eh, em] = end.split(':').map(Number);
-                
-                let totalMins = (eh * 60 + em) - (sh * 60 + sm);
-                if (totalMins < 0) totalMins += 24 * 60;
-                
-                const eatingHours = (totalMins / 60).toFixed(1);
-                const fastingHours = (24 - totalMins / 60).toFixed(1);
-                
-                calcEl.innerText = `FAST ${fastingHours}H / EAT ${eatingHours}H`;
-                
-                if(fastingHours >= 16) {
-                    calcEl.className = "text-xs text-neonYellow ml-2 font-bold cyber-text tracking-widest";
-                    calcEl.style.textShadow = "0 0 5px #fde047";
-                } else {
-                    calcEl.className = "text-xs text-zinc-500 ml-2 font-medium cyber-text tracking-widest";
-                    calcEl.style.textShadow = "none";
-                }
-            }
-        }
-
-        function saveDailyInputs() {
-            const todayData = getTodayData();
-            todayData.fastStart = document.getElementById('fasting-start').value;
-            todayData.fastEnd = document.getElementById('fasting-end').value;
-            todayData.dietLog = document.getElementById('diet-log-input').value;
-            saveAllData();
-        }
-
-        function toggleExerciseDone(isDone) {
-            const todayData = getTodayData();
-            todayData.exerciseDone = isDone;
-            saveAllData();
-            if(isDone) showToast('TRAINING PROTOCOL COMPLETE');
-            else showToast('SYSTEM STANDBY (REST DAY)');
-        }
-
-        function openLogModal() {
-            const modal = document.getElementById('log-modal');
-            const content = document.getElementById('log-modal-content');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                content.classList.remove('scale-95');
-            }, 10);
-            document.getElementById('input-notes').value = '';
-        }
-
-        function closeLogModal() {
-            const modal = document.getElementById('log-modal');
-            const content = document.getElementById('log-modal-content');
-            modal.classList.add('opacity-0');
-            content.classList.add('scale-95');
-            setTimeout(() => { modal.classList.add('hidden'); }, 300);
-        }
-
-        function syncToGasInBackground() {
-            if(!gasUrl) return;
-            const todayData = getTodayData();
-            fetch(gasUrl, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(todayData)
-            }).catch(e => console.log('Sync Error', e));
-        }
-
-        function forceSyncToGas() {
-            if(!gasUrl) {
-                showToast('NO ENDPOINT DETECTED', true);
-                return;
-            }
-            showToast('UPLOADING TO CLOUD...');
-            const todayData = getTodayData();
-            fetch(gasUrl, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(todayData)
-            }).then(() => {
-                showToast('DATA PUSH SUCCESSFUL');
-            }).catch(e => {
-                showToast('CONNECTION FAILED', true);
-            });
-        }
-
-        // 靜默拉取 GAS 資料
-        async function loadFromGasSilently() {
-            try {
-                const response = await fetch(gasUrl);
-                const result = await response.json();
-                if(result.status === 'success' && result.data && result.data.length > 0) {
-                    weightData = result.data;
-                    getTodayData();
-                    updateDashboard();
-                    updateDailyInputsUI();
-                }
-            } catch (e) {
-                console.log('Silent load failed');
-            }
-        }
-
-        async function loadFromGas() {
-            if(!gasUrl) return;
-            showToast('DOWNLOADING FROM CLOUD...');
-            try {
-                const response = await fetch(gasUrl);
-                const result = await response.json();
-                
-                if(result.status === 'success' && result.data && result.data.length > 0) {
-                    weightData = result.data;
-                    getTodayData();
-                    updateDashboard();
-                    updateDailyInputsUI();
-                    showToast('DATA OVERRIDE COMPLETE');
-                } else {
-                    showToast('NO DATA OR FORMAT ERROR', true);
-                }
-            } catch (e) {
-                console.error(e);
-                showToast('DOWNLOAD FAILED (CHECK DEPLOYMENT)', true);
-            }
-        }
-
-        async function saveWeight() {
-            const weightInput = document.getElementById('input-weight').value;
-            const notesInput = document.getElementById('input-notes').value;
-            
-            if(!weightInput || isNaN(weightInput)) {
-                showToast('INVALID MASS DETECTED', true);
-                return;
-            }
-
-            const todayData = getTodayData();
-            todayData.weight = parseFloat(weightInput);
-            if(notesInput) todayData.notes = notesInput;
-            
-            const btn = document.getElementById('btn-save-weight');
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> TRANSMITTING...';
-            btn.disabled = true;
-
-            try {
-                saveAllData();
-                closeLogModal();
-                showToast('MASS LOGGED & SYNCED');
-            } finally {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }
-        }
-
-        function saveGasUrl() {
-            const input = document.getElementById('gas-url-input').value.trim();
-            if(input && !input.startsWith('https://script.google.com/')) {
-                showToast('INVALID ENDPOINT URL', true);
-                return;
-            }
-            gasUrl = input;
-            
-            if(gasUrl) {
-                document.getElementById('gas-status-text').innerHTML = `<span class="text-neonCyan cyber-text">STATUS: ONLINE (SYNC ACTIVE)</span>`;
-                document.getElementById('gas-action-btns').style.display = 'flex';
-                showToast('ENDPOINT SAVED. PULLING DATA...');
-                loadFromGas(); // 設定完立即嘗試拉取一次資料覆蓋 dummy data
-            } else {
-                document.getElementById('gas-status-text').innerText = 'STATUS: OFFLINE (In-Memory Sandbox)';
-                document.getElementById('gas-action-btns').style.display = 'none';
-                showToast('SYNC DISABLED. LOCAL MODE ACTIVE');
-            }
-        }
-
-        function copyGasCode() {
-            const codeText = document.getElementById('gas-code-block').innerText;
-            const tempTextArea = document.createElement('textarea');
-            tempTextArea.value = codeText;
-            document.body.appendChild(tempTextArea);
-            tempTextArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempTextArea);
-            showToast('CODE COPIED TO CLIPBOARD');
-        }
-
-        function showToast(message, isError = false) {
-            const toast = document.getElementById('toast');
-            const icon = document.getElementById('toast-icon');
-            const msgEl = document.getElementById('toast-msg');
-            
-            msgEl.innerText = message;
-            
-            if(isError) {
-                toast.classList.replace('border-transparent', 'border-neonPink');
-                icon.className = 'fa-solid fa-triangle-exclamation text-neonPink';
-                icon.style.textShadow = '0 0 8px #ff00ff';
-            } else {
-                toast.classList.replace('border-neonPink', 'border-transparent');
-                icon.className = 'fa-solid fa-circle-check text-neonCyan';
-                icon.style.textShadow = '0 0 8px #0ff';
-            }
-
-            toast.classList.remove('opacity-0', 'translate-y-4');
-            toast.classList.add('opacity-100', 'translate-y-0');
-
-            setTimeout(() => {
-                toast.classList.remove('opacity-100', 'translate-y-0');
-                toast.classList.add('opacity-0', 'translate-y-4');
-            }, 3000);
-        }
-
-        window.onload = () => {
-            const options = { year: 'numeric', month: 'long', day: 'numeric' };
-            document.getElementById('current-date').innerText = new Date().toLocaleDateString('en-US', options).toUpperCase();
-            initData();
-        };
-    </script>
-</body>
+    <script src="app.js"></script>
+  </body>
 </html>
