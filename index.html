@@ -480,6 +480,35 @@
                   換手機或怕資料不見時，先匯出一份備份檔。
                 </p>
               </section>
+              <section class="backup-card">
+                <div class="section-heading">
+                  <p>Google Apps Script</p>
+                  <h2>雲端同步</h2>
+                </div>
+                <form class="gas-form" id="gasSettingsForm">
+                  <label>
+                    GAS Web App URL
+                    <input
+                      name="gasUrl"
+                      type="url"
+                      placeholder="https://script.google.com/macros/s/.../exec"
+                    />
+                  </label>
+                  <button class="ghost-button" type="submit">儲存 GAS 連結</button>
+                </form>
+                <div class="backup-actions">
+                  <button class="ghost-button" id="pushGas" type="button">推送到雲端</button>
+                  <button class="ghost-button" id="pullGas" type="button">從雲端讀取</button>
+                </div>
+                <p class="connection-status" id="gasStatus">
+                  未連接 GAS。貼上 Web App URL 後，手機資料可以同步到 Google Sheets。
+                </p>
+                <details class="form-guide">
+                  <summary>GAS 程式碼</summary>
+                  <button class="ghost-button" id="copyGasCode" type="button">複製程式碼</button>
+                  <pre class="code-block" id="gasCodeBlock"></pre>
+                </details>
+              </section>
             </div>
             <section class="trend-card">
               <div class="section-heading">

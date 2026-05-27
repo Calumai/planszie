@@ -426,7 +426,8 @@ textarea:focus {
   gap: 10px;
 }
 
-.body-form {
+.body-form,
+.gas-form {
   display: grid;
   gap: 14px;
 }
@@ -463,6 +464,21 @@ textarea:focus {
   color: #fff;
   background: var(--mint-dark);
   border-color: var(--mint-dark);
+}
+
+.code-block {
+  max-height: 320px;
+  overflow: auto;
+  margin: 12px 0 0;
+  padding: 14px;
+  color: #1f604d;
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  white-space: pre;
 }
 
 .habit-checklist label {

@@ -2,6 +2,7 @@ const todayKey = new Date().toISOString().slice(0, 10);
 const storageKey = `fatLossCompanion:${todayKey}`;
 const weightKey = "fatLossCompanion:weights";
 const aiSettingsKey = "fatLossCompanion:aiSettings";
+const gasSettingsKey = "fatLossCompanion:gasSettings";
 
 const defaultState = {
   dayType: "normal",
@@ -126,10 +127,96 @@ const rickyWorkoutTemplate = {
     "Ricky風格器械日：快走6-8分鐘；高位下拉3組、坐姿划船3組、反向飛鳥2-3組、腿推3組、臀外展3組、三頭2組；橢圓機/腳踏車8-12分鐘；背闊肌、胸、肩後側、小腿伸展。姿勢重點：下拉先沉肩再拉、划船不圓背、反向飛鳥不聳肩、腿推膝蓋跟腳尖同方向且不鎖死，小腿痠就降低有氧阻力。",
 };
 
+const gasCode = `function getSheet_() {
+  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = spreadsheet.getSheetByName("FatLossCompanion");
+  if (!sheet) {
+    sheet = spreadsheet.insertSheet("FatLossCompanion");
+    sheet.appendRow(["Date", "Weight", "Water", "Diet", "Exercise", "Notes", "Payload", "UpdatedAt"]);
+  }
+  return sheet;
+}
+
+function doPost(e) {
+  try {
+    var sheet = getSheet_();
+    var data = JSON.parse(e.postData.contents || "{}");
+    var dateStr = data.date || Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd");
+    var values = sheet.getDataRange().getValues();
+    var rowIndex = -1;
+
+    for (var i = 1; i < values.length; i++) {
+      var rowDate = values[i][0];
+      var formatted = rowDate instanceof Date
+        ? Utilities.formatDate(rowDate, Session.getScriptTimeZone(), "yyyy-MM-dd")
+        : String(rowDate).substring(0, 10);
+      if (formatted === dateStr) {
+        rowIndex = i + 1;
+        break;
+      }
+    }
+
+    var rowData = [
+      dateStr,
+      data.weight || "",
+      data.water || 0,
+      data.dietLog || "",
+      data.exerciseDone ? "完成" : "未完成",
+      data.notes || "",
+      JSON.stringify(data),
+      new Date()
+    ];
+
+    if (rowIndex > -1) {
+      sheet.getRange(rowIndex, 1, 1, rowData.length).setValues([rowData]);
+    } else {
+      sheet.appendRow(rowData);
+    }
+
+    return ContentService
+      .createTextOutput(JSON.stringify({ status: "success" }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ status: "error", message: err.toString() }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doGet() {
+  var sheet = getSheet_();
+  var values = sheet.getDataRange().getValues();
+  var data = values.slice(1).map(function(row) {
+    var dateVal = row[0];
+    var dateStr = dateVal instanceof Date
+      ? Utilities.formatDate(dateVal, Session.getScriptTimeZone(), "yyyy-MM-dd")
+      : String(dateVal).substring(0, 10);
+    var payload = {};
+    try {
+      payload = row[6] ? JSON.parse(row[6]) : {};
+    } catch (err) {
+      payload = {};
+    }
+    payload.date = payload.date || dateStr;
+    payload.weight = payload.weight || row[1] || "";
+    payload.water = payload.water || row[2] || 0;
+    payload.dietLog = payload.dietLog || row[3] || "";
+    payload.exerciseDone = payload.exerciseDone || row[4] === "完成";
+    payload.notes = payload.notes || row[5] || "";
+    return payload;
+  });
+
+  return ContentService
+    .createTextOutput(JSON.stringify({ status: "success", data: data, latest: data[data.length - 1] || null }))
+    .setMimeType(ContentService.MimeType.JSON);
+}`;
+
 let state = loadState();
 let weights = loadWeights();
 let aiSettings = loadAiSettings();
+let gasSettings = loadGasSettings();
 let deferredInstallPrompt = null;
+let gasSyncTimer = null;
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => Array.from(document.querySelectorAll(selector));
@@ -150,6 +237,7 @@ function loadState() {
 
 function saveState() {
   localStorage.setItem(storageKey, JSON.stringify(state));
+  scheduleGasSync();
 }
 
 function loadWeights() {
@@ -162,6 +250,7 @@ function loadWeights() {
 
 function saveWeights() {
   localStorage.setItem(weightKey, JSON.stringify(weights));
+  scheduleGasSync();
 }
 
 function saveTodayWeight(weight) {
@@ -197,20 +286,147 @@ function saveAiSettings() {
   localStorage.setItem(aiSettingsKey, JSON.stringify(aiSettings));
 }
 
+function loadGasSettings() {
+  try {
+    return { gasUrl: "", ...JSON.parse(localStorage.getItem(gasSettingsKey)) };
+  } catch {
+    return { gasUrl: "" };
+  }
+}
+
+function saveGasSettings() {
+  localStorage.setItem(gasSettingsKey, JSON.stringify(gasSettings));
+}
+
+function getAllAppStorage() {
+  const localStorageData = {};
+  for (let index = 0; index < localStorage.length; index += 1) {
+    const key = localStorage.key(index);
+    if (key?.startsWith("fatLossCompanion:")) {
+      localStorageData[key] = localStorage.getItem(key);
+    }
+  }
+  return localStorageData;
+}
+
+function getCloudPayload() {
+  const totals = getTotals();
+  return {
+    date: todayKey,
+    weight: state.body.weight || "",
+    water: state.habits.water ? 1 : 0,
+    fastStart: "",
+    fastEnd: "",
+    dietLog: state.foods.map((food) => `${food.mealType}: ${food.foodName}`).join("\n"),
+    exerciseDone: state.exercises.length > 0,
+    notes: [
+      `階段：${stages[state.stage]?.label || state.stage}`,
+      `熱量：${formatNumber(totals.calories)} kcal`,
+      `蛋白質：${formatNumber(totals.protein)} g`,
+      `睡眠：${state.body.sleepHours || "未填"}`,
+      `飢餓：${state.body.hungerLevel || "未填"}`,
+      `精神：${state.body.energyLevel || "未填"}`,
+      `膝蓋：${state.body.kneeStatus || "未填"}`,
+      `小腿：${state.body.calfSoreness || "未填"}`,
+      state.body.bodyNote ? `備註：${state.body.bodyNote}` : "",
+    ]
+      .filter(Boolean)
+      .join("；"),
+    payload: {
+      state,
+      weights,
+      aiSettings: { ...aiSettings, apiKey: aiSettings.apiKey ? "[stored-locally]" : "" },
+      localStorage: getAllAppStorage(),
+    },
+  };
+}
+
+function applyCloudPayload(payload) {
+  const fullPayload = payload?.payload || payload?.data?.payload;
+  const localStorageData = fullPayload?.localStorage || payload?.localStorage;
+
+  if (localStorageData) {
+    Object.entries(localStorageData).forEach(([key, value]) => {
+      if (key.startsWith("fatLossCompanion:") && typeof value === "string") {
+        localStorage.setItem(key, value);
+      }
+    });
+  } else if (payload?.date && payload?.weight) {
+    state.body.weight = String(payload.weight);
+    saveTodayWeight(payload.weight);
+  }
+
+  state = loadState();
+  weights = loadWeights();
+  aiSettings = loadAiSettings();
+  gasSettings = loadGasSettings();
+  render();
+}
+
+function setGasStatus(message) {
+  const status = $("#gasStatus");
+  if (status) {
+    status.textContent = message;
+  }
+}
+
+function scheduleGasSync() {
+  if (!gasSettings?.gasUrl) {
+    return;
+  }
+  clearTimeout(gasSyncTimer);
+  gasSyncTimer = setTimeout(() => {
+    pushToGas({ silent: true });
+  }, 900);
+}
+
+async function pushToGas({ silent = false } = {}) {
+  if (!gasSettings.gasUrl) {
+    setGasStatus("尚未設定 GAS Web App URL。");
+    return;
+  }
+
+  if (!silent) {
+    setGasStatus("正在推送到 Google Sheets...");
+  }
+
+  await fetch(gasSettings.gasUrl, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(getCloudPayload()),
+  });
+
+  setGasStatus(silent ? "已自動同步到 GAS。" : "已推送到 GAS。");
+}
+
+async function pullFromGas() {
+  if (!gasSettings.gasUrl) {
+    setGasStatus("尚未設定 GAS Web App URL。");
+    return;
+  }
+
+  setGasStatus("正在從 GAS 讀取...");
+  const response = await fetch(gasSettings.gasUrl);
+  const result = await response.json();
+  const latest = result.latest || result.data?.at?.(-1);
+
+  if (!latest) {
+    setGasStatus("GAS 目前沒有可讀取資料。");
+    return;
+  }
+
+  applyCloudPayload(latest);
+  setGasStatus("已從 GAS 還原最新資料。");
+}
+
 function exportAllData() {
   const data = {
     exportedAt: new Date().toISOString(),
     app: "AI減脂陪跑助手",
     version: 1,
-    localStorage: {},
+    localStorage: getAllAppStorage(),
   };
-
-  for (let index = 0; index < localStorage.length; index += 1) {
-    const key = localStorage.key(index);
-    if (key?.startsWith("fatLossCompanion:")) {
-      data.localStorage[key] = localStorage.getItem(key);
-    }
-  }
 
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -599,6 +815,13 @@ function render() {
   $("#aiSettingsForm").elements.model.value = aiSettings.model || "gpt-4.1-mini";
   $("#aiSettingsForm").elements.apiKey.value = aiSettings.apiKey || "";
   $("#aiStatus").textContent = aiSettings.apiKey ? "已儲存 API key，送出問題會嘗試 OpenAI" : "目前使用本機陪跑回覆";
+  $("#gasSettingsForm").elements.gasUrl.value = gasSettings.gasUrl || "";
+  $("#gasCodeBlock").textContent = gasCode;
+  setGasStatus(
+    gasSettings.gasUrl
+      ? "GAS 已連接。記錄更新時會自動背景推送，也可以手動推送/讀取。"
+      : "未連接 GAS。貼上 Web App URL 後，手機資料可以同步到 Google Sheets。",
+  );
 
   renderRecords();
   renderSummary();
@@ -840,6 +1063,41 @@ function setupEvents() {
     };
     saveAiSettings();
     $("#aiStatus").textContent = aiSettings.apiKey ? "設定已儲存" : "目前使用本機陪跑回覆";
+  });
+
+  $("#gasSettingsForm").addEventListener("submit", (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const gasUrl = data.get("gasUrl").trim();
+
+    if (gasUrl && !gasUrl.startsWith("https://script.google.com/")) {
+      setGasStatus("GAS URL 格式不對，應該是 https://script.google.com/macros/s/.../exec");
+      return;
+    }
+
+    gasSettings = { gasUrl };
+    saveGasSettings();
+    setGasStatus(gasUrl ? "GAS 連結已儲存，正在推送目前資料..." : "已清除 GAS 連結。");
+    if (gasUrl) {
+      pushToGas().catch(() => setGasStatus("GAS 推送失敗，請確認部署權限是 Anyone。"));
+    }
+  });
+
+  $("#pushGas").addEventListener("click", () => {
+    pushToGas().catch(() => setGasStatus("GAS 推送失敗，請確認連結與部署權限。"));
+  });
+
+  $("#pullGas").addEventListener("click", () => {
+    pullFromGas().catch(() => setGasStatus("GAS 讀取失敗，請確認連結與部署權限。"));
+  });
+
+  $("#copyGasCode").addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(gasCode);
+      setGasStatus("GAS 程式碼已複製。");
+    } catch {
+      setGasStatus("無法自動複製，請手動選取程式碼。");
+    }
   });
 
   $("#weightForm").addEventListener("submit", (event) => {
