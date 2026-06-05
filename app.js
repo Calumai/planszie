@@ -520,6 +520,115 @@ function estimateFood(text) {
   );
 }
 
+const foodNutritionPer100g = [
+  { names: ["雞胸", "雞肉", "chicken breast"], calories: 165, protein: 31, carbs: 0, fat: 3.6 },
+  { names: ["雞腿", "去皮雞腿"], calories: 190, protein: 25, carbs: 0, fat: 9 },
+  { names: ["鮭魚"], calories: 208, protein: 20, carbs: 0, fat: 13 },
+  { names: ["鮪魚", "鮪魚罐"], calories: 130, protein: 26, carbs: 0, fat: 3 },
+  { names: ["鯖魚"], calories: 205, protein: 19, carbs: 0, fat: 14 },
+  { names: ["蝦"], calories: 99, protein: 24, carbs: 0, fat: 0.3 },
+  { names: ["蛋", "水煮蛋", "茶葉蛋"], calories: 155, protein: 13, carbs: 1.1, fat: 11 },
+  { names: ["豆腐"], calories: 76, protein: 8, carbs: 2, fat: 4.8 },
+  { names: ["豆漿"], calories: 45, protein: 3.6, carbs: 3, fat: 2 },
+  { names: ["牛肉"], calories: 250, protein: 26, carbs: 0, fat: 15 },
+  { names: ["豬肉"], calories: 242, protein: 27, carbs: 0, fat: 14 },
+  { names: ["乳清", "高蛋白", "protein"], calories: 400, protein: 76, carbs: 10, fat: 6 },
+  { names: ["白飯", "米飯"], calories: 130, protein: 2.7, carbs: 28, fat: 0.3 },
+  { names: ["飯"], calories: 130, protein: 2.7, carbs: 28, fat: 0.3 },
+  { names: ["糙米", "糙米飯"], calories: 123, protein: 2.7, carbs: 25.6, fat: 1 },
+  { names: ["燕麥"], calories: 389, protein: 16.9, carbs: 66, fat: 6.9 },
+  { names: ["地瓜", "番薯"], calories: 86, protein: 1.6, carbs: 20, fat: 0.1 },
+  { names: ["芋頭"], calories: 112, protein: 1.5, carbs: 26, fat: 0.2 },
+  { names: ["馬鈴薯"], calories: 77, protein: 2, carbs: 17, fat: 0.1 },
+  { names: ["麵", "麵條"], calories: 138, protein: 4.5, carbs: 25, fat: 2.1 },
+  { names: ["吐司"], calories: 265, protein: 9, carbs: 49, fat: 3.2 },
+  { names: ["優格", "無糖優格"], calories: 63, protein: 5.3, carbs: 7, fat: 1.6 },
+  { names: ["牛奶"], calories: 61, protein: 3.2, carbs: 4.8, fat: 3.3 },
+  { names: ["青菜", "蔬菜", "花椰菜", "高麗菜"], calories: 30, protein: 2, carbs: 5, fat: 0.3 },
+  { names: ["沙拉"], calories: 45, protein: 2, carbs: 7, fat: 1 },
+  { names: ["香蕉"], calories: 89, protein: 1.1, carbs: 23, fat: 0.3 },
+  { names: ["蘋果"], calories: 52, protein: 0.3, carbs: 14, fat: 0.2 },
+  { names: ["芭樂"], calories: 68, protein: 2.6, carbs: 14, fat: 1 },
+  { names: ["西瓜"], calories: 30, protein: 0.6, carbs: 8, fat: 0.2 },
+  { names: ["蛋糕"], calories: 330, protein: 5, carbs: 42, fat: 17 },
+  { names: ["便當", "健康餐"], calories: 150, protein: 10, carbs: 14, fat: 5 },
+];
+
+function findFoodNutrition(name) {
+  const lowerName = name.toLowerCase();
+  return foodNutritionPer100g.find((food) =>
+    food.names.some((alias) => lowerName.includes(alias.toLowerCase())),
+  );
+}
+
+function parseFoodSegments(text) {
+  const measuredSegments = text.match(/[^,，、＋+；;\n]*?\d+(?:\.\d+)?\s*(?:g|克|公克|份|碗|顆|個|片|杯|包|匙)/gi);
+  if (measuredSegments?.length > 1) {
+    return measuredSegments.map((segment) => segment.trim()).filter(Boolean);
+  }
+
+  return text
+    .split(/[\n,，、＋+；;]/)
+    .map((segment) => segment.trim())
+    .filter(Boolean);
+}
+
+function extractGramAmount(segment) {
+  const gramMatch = segment.match(/(\d+(?:\.\d+)?)\s*(?:g|克|公克)/i);
+  if (gramMatch) {
+    return Number(gramMatch[1]);
+  }
+
+  const servingMatch = segment.match(/(\d+(?:\.\d+)?)\s*(?:份|碗|顆|個|片|杯|包|匙)/);
+  if (!servingMatch) {
+    return null;
+  }
+
+  const amount = Number(servingMatch[1]);
+  if (/飯|米飯/.test(segment)) return amount * 150;
+  if (/蛋|水煮蛋|茶葉蛋/.test(segment)) return amount * 55;
+  if (/吐司/.test(segment)) return amount * 30;
+  if (/香蕉/.test(segment)) return amount * 120;
+  if (/蘋果|芭樂/.test(segment)) return amount * 150;
+  if (/乳清|高蛋白/.test(segment)) return amount * 30;
+  if (/牛奶|豆漿/.test(segment)) return amount * 240;
+  return amount * 100;
+}
+
+function estimateFood(text) {
+  const estimated = parseFoodSegments(text).reduce(
+    (total, segment) => {
+      const nutrition = findFoodNutrition(segment);
+      if (!nutrition) {
+        total.unknownCount += 1;
+        return total;
+      }
+
+      const grams = extractGramAmount(segment) || 100;
+      const ratio = grams / 100;
+      total.calories += nutrition.calories * ratio;
+      total.protein += nutrition.protein * ratio;
+      total.carbs += nutrition.carbs * ratio;
+      total.fat += nutrition.fat * ratio;
+      total.matchedCount += 1;
+      return total;
+    },
+    { calories: 0, protein: 0, carbs: 0, fat: 0, unknownCount: 0, matchedCount: 0 },
+  );
+
+  if (!estimated.matchedCount) {
+    return { calories: 420, protein: 22, carbs: 45, fat: 14, confidence: "low" };
+  }
+
+  return {
+    calories: Math.round(estimated.calories + estimated.unknownCount * 120),
+    protein: Math.round(estimated.protein * 10) / 10,
+    carbs: Math.round(estimated.carbs * 10) / 10,
+    fat: Math.round(estimated.fat * 10) / 10,
+    confidence: estimated.unknownCount ? "medium" : "high",
+  };
+}
+
 function estimateExercise(type, duration) {
   const perMinute = {
     快走: 5.2,
@@ -1153,7 +1262,13 @@ function setupEvents() {
 
     state.foods.push(food);
     saveState();
-    $("#foodEstimate").textContent = `這餐先估 ${formatNumber(food.calories)} kcal，蛋白質 ${formatNumber(food.protein)}g、碳水 ${formatNumber(food.carbs)}g、脂肪 ${formatNumber(food.fat)}g。你可以在送出前手動修正數字。`;
+    const estimateNote =
+      estimate.confidence === "high"
+        ? "已依你輸入的克數估算。"
+        : estimate.confidence === "medium"
+          ? "有部分食物未完全辨識，已用保守值補上。"
+          : "食物名稱不夠明確，先用一般外食保守估算。";
+    $("#foodEstimate").textContent = `這餐估 ${formatNumber(food.calories)} kcal，蛋白質 ${formatNumber(food.protein)}g、碳水 ${formatNumber(food.carbs)}g、脂肪 ${formatNumber(food.fat)}g。${estimateNote}`;
     event.currentTarget.reset();
     render();
   });

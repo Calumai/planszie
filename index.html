@@ -188,7 +188,7 @@
                   <h2 id="recordsTitle">新增一餐</h2>
                 </div>
                 <label>餐別<select name="mealType"><option>早餐</option><option>午餐</option><option>晚餐</option><option>點心</option></select></label>
-                <label>食物內容<textarea name="foodName" rows="4" placeholder="例如：雞胸肉150g、白飯半碗、青菜" required></textarea></label>
+                <label>食物內容<textarea name="foodName" rows="4" placeholder="例如：雞胸肉150g、白飯150g、青菜200g、乳清30g" required></textarea></label>
                 <div class="form-grid">
                   <label>熱量 kcal<input name="calories" type="number" min="0" placeholder="空白會估算" /></label>
                   <label>蛋白質 g<input name="protein" type="number" min="0" step="0.1" placeholder="空白會估算" /></label>
@@ -196,7 +196,7 @@
                   <label>脂肪 g<input name="fat" type="number" min="0" step="0.1" placeholder="空白會估算" /></label>
                 </div>
                 <button class="primary-button" type="submit">加入今日飲食</button>
-                <p class="connection-status" id="foodEstimate">輸入食物後會先估算，數字可手動修正。</p>
+                <p class="connection-status" id="foodEstimate">只要輸入食物與克數，系統會自動估熱量與三大營養素；手動填數字會優先採用。</p>
               </form>
 
               <form class="entry-form" id="exerciseForm">
