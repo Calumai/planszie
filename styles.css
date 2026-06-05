@@ -229,6 +229,8 @@ textarea:focus {
 }
 
 .dashboard-grid,
+.today-layout,
+.mine-layout,
 .two-column,
 .records-layout,
 .chat-layout {
@@ -238,6 +240,11 @@ textarea:focus {
 
 .dashboard-grid {
   grid-template-columns: minmax(280px, 1.1fr) minmax(260px, 0.9fr);
+}
+
+.today-layout,
+.mine-layout {
+  grid-template-columns: minmax(300px, 1fr) minmax(280px, 0.86fr);
 }
 
 .two-column,
@@ -266,6 +273,62 @@ textarea:focus {
   border: 1px solid rgba(217, 226, 220, 0.88);
   border-radius: 8px;
   box-shadow: var(--shadow);
+}
+
+.today-summary-card {
+  grid-column: 1 / -1;
+}
+
+.summary-metrics,
+.compact-macros,
+.profile-facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.summary-metrics article,
+.compact-macros > div,
+.profile-facts article {
+  display: grid;
+  gap: 7px;
+  min-height: 104px;
+  padding: 14px;
+  background: var(--soft);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.summary-metrics span,
+.compact-macros span,
+.profile-facts span {
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.summary-metrics strong,
+.compact-macros strong,
+.profile-facts strong {
+  font-size: 1.25rem;
+}
+
+.compact-macros {
+  margin-top: 12px;
+}
+
+.compact-macros small {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 .template-card {
@@ -482,12 +545,33 @@ textarea:focus {
 }
 
 .habit-checklist label {
-  display: flex;
-  grid-template-columns: none;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 10px;
   color: var(--ink);
   font-size: 0.95rem;
+}
+
+.habit-checklist strong {
+  color: var(--mint-dark);
+  font-size: 0.86rem;
+}
+
+.habit-score-note {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.habit-score-note span {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 800;
 }
 
 .habit-checklist input {
@@ -627,7 +711,8 @@ progress::-webkit-progress-value {
 
 .primary-button,
 .ghost-button,
-.file-button {
+.file-button,
+.danger-button {
   justify-content: center;
   min-height: 46px;
   border-radius: 8px;
@@ -648,6 +733,20 @@ progress::-webkit-progress-value {
   width: 100%;
   margin-top: 16px;
   border-color: var(--line);
+}
+
+.danger-button {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  margin-top: 16px;
+  color: #fff;
+  background: #b94a3a;
+  border: 1px solid #b94a3a;
+}
+
+.danger-button:hover {
+  background: #9f392d;
 }
 
 .install-button {
@@ -875,6 +974,15 @@ progress::-webkit-progress-value {
   gap: 18px;
 }
 
+.mine-layout .history-card,
+.mine-layout .template-card {
+  grid-column: 1 / -1;
+}
+
+.profile-facts {
+  margin-bottom: 16px;
+}
+
 .template-layout {
   display: grid;
   grid-template-columns: minmax(300px, 1fr) minmax(280px, 1fr);
@@ -977,6 +1085,8 @@ progress::-webkit-progress-value {
 @media (max-width: 980px) {
   .app-shell,
   .dashboard-grid,
+  .today-layout,
+  .mine-layout,
   .two-column,
   .records-layout,
   .chat-layout,
@@ -1000,9 +1110,12 @@ progress::-webkit-progress-value {
   }
 
   .tabs {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
+  .summary-metrics,
+  .compact-macros,
+  .profile-facts,
   .history-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -1018,6 +1131,49 @@ progress::-webkit-progress-value {
     padding: 18px;
   }
 
+  .main-content {
+    padding-bottom: 96px;
+  }
+
+  .sidebar {
+    padding-bottom: 0;
+  }
+
+  .brand {
+    margin-bottom: 4px;
+  }
+
+  .bottom-tabs {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+    background: rgba(255, 255, 255, 0.94);
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -12px 34px rgba(37, 49, 44, 0.1);
+    backdrop-filter: blur(18px);
+  }
+
+  .bottom-tabs .tab-button {
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    min-height: 58px;
+    padding: 6px 4px;
+    font-size: 0.82rem;
+    text-align: center;
+  }
+
+  .bottom-tabs .tab-button span {
+    width: 28px;
+    height: 28px;
+  }
+
   .topbar {
     display: grid;
   }
@@ -1027,6 +1183,9 @@ progress::-webkit-progress-value {
   .metric-row,
   .chat-form,
   .backup-actions,
+  .summary-metrics,
+  .compact-macros,
+  .profile-facts,
   .history-stats {
     grid-template-columns: 1fr;
   }

@@ -1255,6 +1255,10 @@ function setupEvents() {
   });
 
   $("#clearToday").addEventListener("click", () => {
+    const confirmed = window.confirm("確定要清空今天的飲食、運動、習慣與身體紀錄嗎？這個動作不會刪除歷史體重。");
+    if (!confirmed) {
+      return;
+    }
     state = { ...defaultState };
     saveState();
     render();

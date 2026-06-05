@@ -13,55 +13,27 @@
   </head>
   <body>
     <div class="app-shell">
-      <aside class="sidebar" aria-label="主要導覽">
+      <aside class="sidebar" aria-label="主選單">
         <div class="brand">
-          <div class="brand-mark" aria-hidden="true">
-            <span></span>
-          </div>
+          <div class="brand-mark" aria-hidden="true"><span></span></div>
           <div>
             <p>AI 減脂陪跑</p>
-            <strong>穩定走到 65kg</strong>
+            <strong>Personal Health OS</strong>
           </div>
         </div>
 
-        <nav class="tabs" aria-label="頁面切換">
-          <button class="tab-button is-active" data-tab="dashboard" type="button">
-            <span aria-hidden="true">⌂</span> 今日總覽
-          </button>
-          <button class="tab-button" data-tab="food" type="button">
-            <span aria-hidden="true">＋</span> 新增飲食
-          </button>
-          <button class="tab-button" data-tab="exercise" type="button">
-            <span aria-hidden="true">◷</span> 新增運動
-          </button>
-          <button class="tab-button" data-tab="records" type="button">
-            <span aria-hidden="true">☰</span> 今日紀錄
-          </button>
-          <button class="tab-button" data-tab="coach" type="button">
-            <span aria-hidden="true">✦</span> AI 教練
-          </button>
-          <button class="tab-button" data-tab="trends" type="button">
-            <span aria-hidden="true">⌁</span> 趨勢
-          </button>
-          <button class="tab-button" data-tab="growth" type="button">
-            <span aria-hidden="true">◎</span> 六階段
-          </button>
-          <button class="tab-button" data-tab="templates" type="button">
-            <span aria-hidden="true">▣</span> 菜單模板
-          </button>
+        <nav class="tabs bottom-tabs" aria-label="主要分頁">
+          <button class="tab-button is-active" data-tab="today" type="button"><span aria-hidden="true">今</span>今日</button>
+          <button class="tab-button" data-tab="records" type="button"><span aria-hidden="true">記</span>記錄</button>
+          <button class="tab-button" data-tab="coach" type="button"><span aria-hidden="true">問</span>教練</button>
+          <button class="tab-button" data-tab="mine" type="button"><span aria-hidden="true">我</span>我的</button>
         </nav>
 
         <div class="profile-card">
-          <img
-            src="assets/meal-bowl.svg"
-            alt=""
-            class="profile-art"
-            width="164"
-            height="128"
-          />
-          <p>159 cm · 99 kg 起點</p>
-          <strong>目標：一年穩穩到 65 kg</strong>
-          <small>低衝擊有氧＋基礎重訓，飲食保留彈性。</small>
+          <img src="assets/meal-bowl.svg" alt="" class="profile-art" width="164" height="128" />
+          <p>159 cm / 起始 99 kg</p>
+          <strong>第一階段先穩穩往 95 kg</strong>
+          <small>重點是長期可持續，不是今天完美。</small>
         </div>
       </aside>
 
@@ -69,139 +41,98 @@
         <header class="topbar">
           <div>
             <p id="todayLabel">今天</p>
-            <h1>今天也不用完美，有記錄就有方向。</h1>
+            <h1>今天只要把節奏穩住。</h1>
           </div>
-          <div class="topbar-actions">
-            <label for="dayType">今日狀態</label>
-            <select id="dayType">
-              <option value="normal">一般日</option>
-              <option value="training">重訓日</option>
-              <option value="rest">休息日</option>
-            </select>
-            <label for="stageSelect">目前階段</label>
-            <select id="stageSelect">
-              <option value="inspiration">啟發</option>
-              <option value="motivation">動力</option>
-              <option value="intention">意圖</option>
-              <option value="discipline">紀律</option>
-              <option value="habit">習慣</option>
-              <option value="passion">熱情</option>
-            </select>
-            <button class="ghost-button install-button" id="installApp" type="button" hidden>
-              安裝到手機
-            </button>
-          </div>
+          <button class="ghost-button install-button" id="installApp" type="button" hidden>安裝 App</button>
         </header>
 
-        <section class="panel is-active" id="dashboard" aria-labelledby="dashboardTitle">
-          <div class="dashboard-grid">
-            <section class="summary-panel">
+        <section class="panel is-active" id="today" aria-labelledby="todayTitle">
+          <div class="today-layout">
+            <section class="summary-panel today-summary-card">
               <div class="section-heading">
-                <p>今日熱量</p>
-                <h2 id="dashboardTitle">總覽</h2>
+                <p>今日摘要</p>
+                <h2 id="todayTitle">一眼看完</h2>
               </div>
-              <div class="calorie-ring" aria-label="今日熱量進度">
-                <svg viewBox="0 0 180 180" role="img">
-                  <circle cx="90" cy="90" r="74" class="ring-bg"></circle>
-                  <circle cx="90" cy="90" r="74" class="ring-progress" id="calorieRing"></circle>
-                </svg>
-                <div>
-                  <strong id="calorieTotal">0</strong>
-                  <span id="calorieTarget">/ 1700 kcal</span>
-                </div>
-              </div>
-              <div class="metric-row">
+              <div class="summary-metrics">
                 <article>
-                  <span>剩餘可吃</span>
+                  <span>熱量剩餘</span>
                   <strong id="remainingCalories">1700 kcal</strong>
                 </article>
                 <article>
-                  <span>運動消耗</span>
-                  <strong id="exerciseCalories">0 kcal</strong>
+                  <span>蛋白質</span>
+                  <strong id="proteinText">0 / 100 g</strong>
+                  <progress id="proteinProgress" max="100" value="0"></progress>
+                </article>
+                <article>
+                  <span>今日狀態</span>
+                  <select id="dayType">
+                    <option value="normal">一般日</option>
+                    <option value="training">重訓日</option>
+                    <option value="rest">休息日</option>
+                  </select>
+                </article>
+                <article>
+                  <span>當前階段</span>
+                  <select id="stageSelect">
+                    <option value="inspiration">啟發</option>
+                    <option value="motivation">動力</option>
+                    <option value="intention">意圖</option>
+                    <option value="discipline">紀律</option>
+                    <option value="habit">習慣</option>
+                    <option value="passion">熱情</option>
+                  </select>
                 </article>
               </div>
-            </section>
-
-            <section class="coach-card">
-              <div class="section-heading">
-                <p>今日 AI 建議</p>
-                <h2>陪跑回饋</h2>
+              <div class="compact-macros">
+                <div><span>今日熱量</span><strong id="calorieTotal">0</strong><small id="calorieTarget">/ 1700 kcal</small></div>
+                <div><span>運動消耗</span><strong id="exerciseCalories">0 kcal</strong></div>
+                <div><span>碳水</span><strong id="carbsText">0 / 150 g</strong><progress id="carbsProgress" max="150" value="0"></progress></div>
+                <div><span>脂肪</span><strong id="fatText">0 g</strong><progress id="fatProgress" max="60" value="0"></progress></div>
               </div>
-              <p id="dailyAdvice">
-                先記錄第一餐，我會幫你抓熱量、蛋白質和晚餐方向。
-              </p>
-            </section>
-
-            <section class="macro-panel">
-              <div class="section-heading">
-                <p>營養目標</p>
-                <h2>宏量進度</h2>
-              </div>
-              <div class="progress-list">
-                <div class="progress-item">
-                  <div><span>蛋白質</span><strong id="proteinText">0 / 100 g</strong></div>
-                  <progress id="proteinProgress" max="100" value="0"></progress>
-                </div>
-                <div class="progress-item">
-                  <div><span>碳水</span><strong id="carbsText">0 / 150 g</strong></div>
-                  <progress id="carbsProgress" max="150" value="0"></progress>
-                </div>
-                <div class="progress-item">
-                  <div><span>脂肪</span><strong id="fatText">0 g</strong></div>
-                  <progress id="fatProgress" max="60" value="0"></progress>
-                </div>
-              </div>
-            </section>
-
-            <section class="phase-panel">
-              <div class="section-heading">
-                <p>今日階段提醒</p>
-                <h2 id="stageName">紀律 Discipline</h2>
-              </div>
-              <p id="stageReminder">動力不夠時，用最低標準守住軌道。</p>
-              <div class="minimum-card">
-                <strong>今日最低標準</strong>
-                <p id="minimumStandard">不喝含糖飲料、晚餐有蛋白質、睡前簡單記錄。</p>
-              </div>
+              <svg class="visually-hidden" viewBox="0 0 180 180" aria-hidden="true">
+                <circle id="calorieRing" cx="90" cy="90" r="74"></circle>
+              </svg>
             </section>
 
             <section class="habit-panel">
               <div class="section-heading">
                 <p>Adherence</p>
-                <h2>今日習慣分數</h2>
+                <h2>習慣分數</h2>
               </div>
-              <div class="score-display">
-                <strong id="habitScore">0</strong>
-                <span>/ 100</span>
-              </div>
+              <div class="score-display"><strong id="habitScore">0</strong><span>/ 100</span></div>
               <form class="habit-checklist" id="habitForm">
-                <label><input type="checkbox" name="water" /> 有喝足水</label>
-                <label><input type="checkbox" name="noSugaryDrink" /> 沒有含糖飲料</label>
-                <label><input type="checkbox" name="recovery" /> 有睡眠/恢復</label>
+                <label><input type="checkbox" name="water" /><span>喝水達標</span><strong>+10</strong></label>
+                <label><input type="checkbox" name="noSugaryDrink" /><span>不喝含糖飲料</span><strong>+10</strong></label>
+                <label><input type="checkbox" name="recovery" /><span>睡眠/恢復有顧到</span><strong>+20</strong></label>
               </form>
+              <div class="habit-score-note">
+                <span>飲食紀錄 +20</span>
+                <span>蛋白質有攝取 +20</span>
+                <span>運動紀錄 +20</span>
+              </div>
             </section>
 
             <section class="body-panel">
               <div class="section-heading">
-                <p>今日身體紀錄</p>
-                <h2>體重與狀態</h2>
+                <p>身體紀錄</p>
+                <h2>今天狀態</h2>
               </div>
               <form class="body-form" id="bodyForm">
                 <div class="form-grid">
-                  <label>體重 kg<input name="weight" type="number" min="30" step="0.1" placeholder="例如：99.0" /></label>
-                  <label>腰圍 cm<input name="waist" type="number" min="40" step="0.1" placeholder="可選填" /></label>
+                  <label>體重 kg<input name="weight" type="number" min="30" step="0.1" placeholder="99.0" /></label>
+                  <label>腰圍 cm<input name="waist" type="number" min="40" step="0.1" placeholder="選填" /></label>
                 </div>
                 <fieldset class="quick-group" data-field="sleepHours">
                   <legend>睡眠</legend>
-                  <button type="button" data-value="4">少於5小時</button>
-                  <button type="button" data-value="6">5～6小時</button>
-                  <button type="button" data-value="7.5">7小時以上</button>
+                  <button type="button" data-value="4">少於 5 小時</button>
+                  <button type="button" data-value="6">5-6 小時</button>
+                  <button type="button" data-value="7.5">7 小時以上</button>
                 </fieldset>
                 <fieldset class="quick-group" data-field="hungerLevel">
-                  <legend>飢餓感</legend>
-                  <button type="button" data-value="1">不餓</button>
+                  <legend>飢餓</legend>
+                  <button type="button" data-value="1">低</button>
                   <button type="button" data-value="3">普通</button>
-                  <button type="button" data-value="5">很餓</button>
+                  <button type="button" data-value="5">高</button>
                 </fieldset>
                 <fieldset class="quick-group" data-field="energyLevel">
                   <legend>精神</legend>
@@ -212,192 +143,91 @@
                 <fieldset class="quick-group" data-field="kneeStatus">
                   <legend>膝蓋</legend>
                   <button type="button" data-value="OK">OK</button>
-                  <button type="button" data-value="有壓力">有壓力</button>
+                  <button type="button" data-value="微不舒服">微不舒服</button>
                   <button type="button" data-value="痛">痛</button>
                 </fieldset>
                 <fieldset class="quick-group" data-field="calfSoreness">
                   <legend>小腿</legend>
                   <button type="button" data-value="OK">OK</button>
-                  <button type="button" data-value="輕微痠">輕微痠</button>
+                  <button type="button" data-value="有痠">有痠</button>
                   <button type="button" data-value="很痠">很痠</button>
                 </fieldset>
                 <fieldset class="quick-group" data-field="bodyNote">
-                  <legend>其他</legend>
+                  <legend>備註</legend>
                   <button type="button" data-value="">無</button>
-                  <button type="button" data-value="生理期">生理期</button>
-                  <button type="button" data-value="今天壓力大">壓力大</button>
-                  <button type="button" data-value="今天睡不好">睡不好</button>
+                  <button type="button" data-value="壓力高">壓力高</button>
+                  <button type="button" data-value="今天想吃甜">想吃甜</button>
+                  <button type="button" data-value="今天精神好">精神好</button>
                 </fieldset>
                 <button class="primary-button" type="submit">儲存身體紀錄</button>
-                <p class="connection-status" id="bodyStatus">早上量體重，晚上補狀態也可以。</p>
+                <p class="connection-status" id="bodyStatus">填完後會同步到今日紀錄。</p>
               </form>
             </section>
 
-            <section class="workout-panel">
+            <section class="coach-card">
               <div class="section-heading">
-                <p>健身房菜單</p>
-                <h2>低衝擊重訓</h2>
+                <p>今日 AI 建議</p>
+                <h2 id="stageName">紀律 Discipline</h2>
               </div>
-              <ul class="workout-list">
-                <li><span>熱身</span>跑步機快走 5～10 分鐘</li>
-                <li><span>腿推機</span>12 下 × 3 組</li>
-                <li><span>滑輪下拉</span>12 下 × 3 組</li>
-                <li><span>坐姿划船</span>12 下 × 3 組</li>
-                <li><span>胸推機</span>10 下 × 2 組</li>
-                <li><span>臀外展機</span>15 下 × 3 組</li>
-                <li><span>強度</span>大多維持 2～3 RIR</li>
-                <li><span>有氧</span>快走 20～30 分鐘</li>
-              </ul>
-              <details class="form-guide">
-                <summary>姿勢說明</summary>
-                <article>
-                  <strong>腿推機</strong>
-                  <p>腳掌踩穩、膝蓋朝腳尖方向，不要內夾。下放到膝蓋舒服角度即可，推起時膝蓋不要鎖死，感覺放在大腿與臀部。</p>
-                  <small>避免：屁股離墊、膝蓋內扣、重量太重導致腰頂起來。</small>
-                </article>
-                <article>
-                  <strong>滑輪下拉</strong>
-                  <p>胸口微微打開，先把肩膀往下放，再用手肘往身體兩側拉。拉到鎖骨附近即可，慢慢放回。</p>
-                  <small>避免：聳肩、身體大幅後仰、用手臂硬扯。</small>
-                </article>
-                <article>
-                  <strong>坐姿划船</strong>
-                  <p>背打直、肋骨不要外翻，先穩住肩胛，再把手肘往後拉到身體旁邊。回放時讓背有被拉長的感覺。</p>
-                  <small>避免：圓背、用腰甩、肩膀往耳朵跑。</small>
-                </article>
-                <article>
-                  <strong>胸推機</strong>
-                  <p>肩胛貼住椅背，握把約在胸口高度。推的時候手肘不要完全鎖死，回來時控制速度。</p>
-                  <small>避免：肩膀前頂、手腕折太多、重量大到胸口拉扯。</small>
-                </article>
-                <article>
-                  <strong>臀外展機</strong>
-                  <p>骨盆坐穩，膝蓋往外打開時停一秒，慢慢回來。身體可以微微前傾，但不要用腰晃。</p>
-                  <small>避免：借力彈開、只追求開很大、腰部代償。</small>
-                </article>
-              </details>
-            </section>
-          </div>
-        </section>
-
-        <section class="panel" id="food" aria-labelledby="foodTitle">
-          <div class="two-column">
-            <form class="entry-form" id="foodForm">
-              <div class="section-heading">
-                <p>新增飲食</p>
-                <h2 id="foodTitle">文字紀錄與估算</h2>
+              <p id="dailyAdvice">先記錄第一餐，我會幫你抓熱量、蛋白質和晚餐方向。</p>
+              <div class="minimum-card">
+                <strong>今日最低標準</strong>
+                <p id="minimumStandard">不喝含糖飲料、晚餐有蛋白質、睡前簡單記錄。</p>
               </div>
-              <label>
-                餐別
-                <select name="mealType">
-                  <option>早餐</option>
-                  <option>午餐</option>
-                  <option>晚餐</option>
-                  <option>點心</option>
-                </select>
-              </label>
-              <label>
-                吃了什麼
-                <textarea
-                  name="foodName"
-                  rows="4"
-                  placeholder="例如：雞肉150g、燕麥飯、沙拉、西瓜、高蛋白半包"
-                  required
-                ></textarea>
-              </label>
-              <div class="form-grid">
-                <label>熱量 kcal<input name="calories" type="number" min="0" placeholder="自動估算" /></label>
-                <label>蛋白質 g<input name="protein" type="number" min="0" step="0.1" placeholder="自動估算" /></label>
-                <label>碳水 g<input name="carbs" type="number" min="0" step="0.1" placeholder="自動估算" /></label>
-                <label>脂肪 g<input name="fat" type="number" min="0" step="0.1" placeholder="自動估算" /></label>
-              </div>
-              <div class="upload-placeholder">
-                <span aria-hidden="true">▧</span>
-                <p>照片估算第二版接上，現在先用文字記錄。</p>
-              </div>
-              <button class="primary-button" type="submit">加入今日飲食</button>
-            </form>
-
-            <section class="estimate-card">
-              <div class="section-heading">
-                <p>AI 估算結果</p>
-                <h2>可手動修改</h2>
-              </div>
-              <p id="foodEstimate">
-                輸入食物後，如果營養欄位留空，系統會用常見食材規則先估一版。
-              </p>
-              <div class="tip-box">
-                <strong>提醒</strong>
-                <p>豆漿容易脹氣，建議優先選高蛋白飲、雞肉、蛋、魚、豆腐以外的可接受蛋白質來源。</p>
-              </div>
-            </section>
-          </div>
-        </section>
-
-        <section class="panel" id="exercise" aria-labelledby="exerciseTitle">
-          <div class="two-column">
-            <form class="entry-form" id="exerciseForm">
-              <div class="section-heading">
-                <p>新增運動</p>
-                <h2 id="exerciseTitle">低衝擊優先</h2>
-              </div>
-              <label>
-                運動類型
-                <select name="exerciseType">
-                  <option>快走</option>
-                  <option>跑步機</option>
-                  <option>室內腳踏車</option>
-                  <option>飛輪</option>
-                  <option>游泳</option>
-                  <option>重訓</option>
-                  <option>伸展</option>
-                </select>
-              </label>
-              <div class="form-grid">
-                <label>時間 分鐘<input name="duration" type="number" min="1" required /></label>
-                <label>消耗 kcal<input name="caloriesBurned" type="number" min="0" placeholder="可留空估算" /></label>
-                <label>平均心率<input name="heartRate" type="number" min="0" /></label>
-              </div>
-              <label>
-                身體狀態 / 備註
-                <textarea name="note" rows="4" placeholder="例如：膝蓋OK、腿有點痠、今天有重訓"></textarea>
-              </label>
-              <div class="form-grid">
-                <label>膝蓋狀況<input name="kneeStatus" type="text" placeholder="例如：OK / 有壓力" /></label>
-                <label>小腿痠痛<input name="calfSoreness" type="text" placeholder="例如：輕微 / 明顯" /></label>
-              </div>
-              <button class="primary-button" type="submit">加入今日運動</button>
-            </form>
-
-            <section class="estimate-card">
-              <div class="section-heading">
-                <p>運動建議</p>
-                <h2>膝蓋友善</h2>
-              </div>
-              <p>
-                今天如果膝蓋有壓力，就把跑跳改成快走、腳踏車或游泳。重訓日碳水不用怕，主食半份到一份都能安排。
-              </p>
+              <p class="stage-reminder" id="stageReminder">動力不夠時，用最低標準守住軌道。</p>
             </section>
           </div>
         </section>
 
         <section class="panel" id="records" aria-labelledby="recordsTitle">
           <div class="records-layout">
-            <section>
+            <div class="stack">
+              <form class="entry-form" id="foodForm">
+                <div class="section-heading">
+                  <p>飲食新增</p>
+                  <h2 id="recordsTitle">新增一餐</h2>
+                </div>
+                <label>餐別<select name="mealType"><option>早餐</option><option>午餐</option><option>晚餐</option><option>點心</option></select></label>
+                <label>食物內容<textarea name="foodName" rows="4" placeholder="例如：雞胸肉150g、白飯半碗、青菜" required></textarea></label>
+                <div class="form-grid">
+                  <label>熱量 kcal<input name="calories" type="number" min="0" placeholder="空白會估算" /></label>
+                  <label>蛋白質 g<input name="protein" type="number" min="0" step="0.1" placeholder="空白會估算" /></label>
+                  <label>碳水 g<input name="carbs" type="number" min="0" step="0.1" placeholder="空白會估算" /></label>
+                  <label>脂肪 g<input name="fat" type="number" min="0" step="0.1" placeholder="空白會估算" /></label>
+                </div>
+                <button class="primary-button" type="submit">加入今日飲食</button>
+                <p class="connection-status" id="foodEstimate">輸入食物後會先估算，數字可手動修正。</p>
+              </form>
+
+              <form class="entry-form" id="exerciseForm">
+                <div class="section-heading">
+                  <p>運動新增</p>
+                  <h2>新增運動</h2>
+                </div>
+                <label>運動類型<select name="exerciseType"><option>快走</option><option>跑步機</option><option>室內腳踏車</option><option>飛輪</option><option>游泳</option><option>重訓</option><option>伸展</option></select></label>
+                <div class="form-grid">
+                  <label>時間 分鐘<input name="duration" type="number" min="1" required /></label>
+                  <label>消耗 kcal<input name="caloriesBurned" type="number" min="0" placeholder="空白會估算" /></label>
+                  <label>平均心率<input name="heartRate" type="number" min="0" /></label>
+                </div>
+                <label>狀態/備註<textarea name="note" rows="3" placeholder="例如：膝蓋OK、小腿有點痠"></textarea></label>
+                <div class="form-grid">
+                  <label>膝蓋狀態<input name="kneeStatus" type="text" placeholder="OK / 微不舒服" /></label>
+                  <label>小腿痠度<input name="calfSoreness" type="text" placeholder="OK / 有痠" /></label>
+                </div>
+                <button class="primary-button" type="submit">加入今日運動</button>
+              </form>
+            </div>
+
+            <section class="daily-summary">
               <div class="section-heading">
-                <p>今日紀錄</p>
-                <h2 id="recordsTitle">飲食與運動</h2>
+                <p>今日明細</p>
+                <h2>飲食與運動列表</h2>
               </div>
               <div id="foodRecords" class="record-list"></div>
               <div id="exerciseRecords" class="record-list"></div>
-            </section>
-            <section class="daily-summary">
-              <div class="section-heading">
-                <p>每日總結</p>
-                <h2>今晚回顧</h2>
-              </div>
               <div id="dailySummary"></div>
-              <button class="ghost-button" id="clearToday" type="button">清空今日資料</button>
+              <button class="danger-button" id="clearToday" type="button">清空今日資料</button>
             </section>
           </div>
         </section>
@@ -407,299 +237,156 @@
             <section class="chat-panel">
               <div class="section-heading">
                 <p>AI 教練</p>
-                <h2 id="coachTitle">可以吃嗎？</h2>
+                <h2 id="coachTitle">直接問我</h2>
               </div>
               <div class="chat-window" id="chatWindow" aria-live="polite"></div>
               <form class="chat-form" id="coachForm">
-                <input
-                  name="question"
-                  placeholder="問：今天晚餐吃什麼？我可以吃蛋糕嗎？"
-                  autocomplete="off"
-                  required
-                />
+                <input name="question" placeholder="例如：我今天晚餐可以吃什麼？" autocomplete="off" required />
                 <button class="primary-button" type="submit">送出</button>
               </form>
             </section>
             <section class="quick-prompts" aria-label="快速問題">
               <form class="ai-settings" id="aiSettingsForm">
                 <div class="section-heading">
-                  <p>AI 連線</p>
-                  <h2>教練設定</h2>
+                  <p>AI 設定</p>
+                  <h2>OpenRouter / OpenAI</h2>
                 </div>
-                <label>
-                  OpenAI / OpenRouter API Key
-                  <input
-                    name="apiKey"
-                    type="password"
-                    autocomplete="off"
-                    placeholder="sk-... 或 sk-or-..."
-                  />
-                </label>
-                <label>
-                  模型
-                  <input name="model" type="text" value="openai/gpt-4.1-mini" />
-                </label>
+                <label>API Key<input name="apiKey" type="password" autocomplete="off" placeholder="sk-or-... 或 sk-..." /></label>
+                <label>模型<input name="model" type="text" value="openai/gpt-4.1-mini" /></label>
                 <button class="ghost-button" type="submit">儲存設定</button>
                 <p class="connection-status" id="aiStatus">目前使用本機陪跑回覆</p>
               </form>
-              <button type="button">今天晚餐吃什麼？</button>
-              <button type="button">我可以吃蛋糕嗎？</button>
-              <button type="button">今天碳水會太多嗎？</button>
-              <button type="button">小腿痠怎麼辦？</button>
-              <button type="button">明天要不要重訓？</button>
-              <button type="button">我今天不想運動</button>
-              <button type="button">我想吃爆</button>
+              <button type="button">我今天可以吃蛋糕嗎？</button>
+              <button type="button">晚餐吃什麼？</button>
+              <button type="button">今天碳水太多嗎？</button>
+              <button type="button">我今天需要重訓嗎？</button>
+              <button type="button">小腿痠還能運動嗎？</button>
+              <button type="button">今天最低標準是什麼？</button>
             </section>
           </div>
         </section>
 
-        <section class="panel" id="trends" aria-labelledby="trendsTitle">
-          <div class="records-layout">
-            <div class="stack">
+        <section class="panel" id="mine" aria-labelledby="mineTitle">
+          <div class="mine-layout">
+            <section class="trend-card">
+              <div class="section-heading">
+                <p>個人資料</p>
+                <h2 id="mineTitle">目標與體重</h2>
+              </div>
+              <div class="profile-facts">
+                <article><span>身高</span><strong>159 cm</strong></article>
+                <article><span>起始體重</span><strong>99 kg</strong></article>
+                <article><span>第一目標</span><strong>95 kg</strong></article>
+                <article><span>最終目標</span><strong>70 kg</strong></article>
+              </div>
               <form class="entry-form" id="weightForm">
-                <div class="section-heading">
-                  <p>體重紀錄</p>
-                  <h2 id="trendsTitle">趨勢</h2>
-                </div>
                 <label>今日體重 kg<input name="weight" type="number" min="30" step="0.1" required /></label>
-                <button class="primary-button" type="submit">加入體重</button>
+                <button class="primary-button" type="submit">加入體重趨勢</button>
               </form>
-              <section class="backup-card">
-                <div class="section-heading">
-                  <p>個人資料</p>
-                  <h2>備份與還原</h2>
-                </div>
-                <div class="backup-actions">
-                  <button class="ghost-button" id="exportData" type="button">匯出備份</button>
-                  <label class="file-button">
-                    匯入備份
-                    <input id="importData" type="file" accept="application/json" />
-                  </label>
-                </div>
-                <p class="connection-status" id="backupStatus">
-                  換手機或怕資料不見時，先匯出一份備份檔。
-                </p>
-              </section>
-              <section class="backup-card">
-                <div class="section-heading">
-                  <p>Google Apps Script</p>
-                  <h2>雲端同步</h2>
-                </div>
+              <div class="trend-chart" id="weightChart" aria-label="體重趨勢"></div>
+              <div class="metric-row">
+                <article><span>蛋白質達標率</span><strong id="proteinRate">0%</strong></article>
+                <article><span>今日運動筆數</span><strong id="exerciseCount">0</strong></article>
+              </div>
+            </section>
+
+            <section class="growth-card">
+              <div class="section-heading">
+                <p>六階段模型</p>
+                <h2>目前進度</h2>
+              </div>
+              <div class="stage-grid" id="stageGrid"></div>
+            </section>
+
+            <section class="backup-card">
+              <div class="section-heading">
+                <p>備份</p>
+                <h2>匯出 / 匯入</h2>
+              </div>
+              <div class="backup-actions">
+                <button class="ghost-button" id="exportData" type="button">匯出備份</button>
+                <label class="file-button">匯入備份<input id="importData" type="file" accept="application/json" /></label>
+              </div>
+              <p class="connection-status" id="backupStatus">可匯出本機資料，換手機時再匯入。</p>
+            </section>
+
+            <section class="backup-card">
+              <details class="form-guide">
+                <summary>Google Sheets 同步設定</summary>
                 <form class="gas-form" id="gasSettingsForm">
-                  <label>
-                    固定 GAS Web App URL
-                    <input
-                      name="gasUrl"
-                      type="url"
-                      value="https://script.google.com/macros/s/AKfycbzbYDTgjK4oL0KYJ9X_mvfym59Sc35HE8FgH_67QTjAazDIDbmscql4yO_ee5resG08/exec"
-                      readonly
-                    />
-                  </label>
+                  <label>固定 GAS Web App URL<input name="gasUrl" type="url" value="https://script.google.com/macros/s/AKfycbzbYDTgjK4oL0KYJ9X_mvfym59Sc35HE8FgH_67QTjAazDIDbmscql4yO_ee5resG08/exec" readonly /></label>
                   <button class="ghost-button" type="submit">重新套用固定 GAS</button>
                 </form>
                 <div class="backup-actions">
                   <button class="ghost-button" id="pushGas" type="button">推送到雲端</button>
-                  <button class="ghost-button" id="pullGas" type="button">從雲端讀取</button>
+                  <button class="ghost-button" id="pullGas" type="button">讀取雲端</button>
                 </div>
-                <p class="connection-status" id="gasStatus">
-                  GAS 已內建。記錄更新時會自動同步到 Google Sheets。
-                </p>
+                <p class="connection-status" id="gasStatus">GAS 已內建，紀錄更新時會自動背景推送。</p>
                 <details class="form-guide">
                   <summary>GAS 程式碼</summary>
                   <button class="ghost-button" id="copyGasCode" type="button">複製程式碼</button>
                   <pre class="code-block" id="gasCodeBlock"></pre>
                 </details>
-              </section>
-            </div>
-            <section class="trend-card">
-              <div class="section-heading">
-                <p>近況</p>
-                <h2>體重與達標率</h2>
-              </div>
-              <div class="trend-chart" id="weightChart" aria-label="體重曲線"></div>
-              <div class="metric-row">
-                <article>
-                  <span>蛋白質達標率</span>
-                  <strong id="proteinRate">0%</strong>
-                </article>
-                <article>
-                  <span>今日運動次數</span>
-                  <strong id="exerciseCount">0</strong>
-                </article>
-              </div>
-            </section>
-            <section class="trend-card history-card">
-              <div class="section-heading">
-                <p>PDF 歷史紀錄</p>
-                <h2>Day001～Day019 減脂軌跡</h2>
-              </div>
-              <div class="history-stats" id="historyStats"></div>
-              <div class="history-chart" id="historyWeightChart" aria-label="歷史體重曲線"></div>
-              <div class="history-list" id="historyList"></div>
-            </section>
-            <section class="trend-card history-card">
-              <div class="section-heading">
-                <p>AI 教練知識庫</p>
-                <h2>從歷史紀錄整理出的陪跑原則</h2>
-              </div>
-              <div class="knowledge-list" id="coachKnowledgeList"></div>
-            </section>
-          </div>
-        </section>
-
-        <section class="panel" id="growth" aria-labelledby="growthTitle">
-          <div class="growth-layout">
-            <section class="growth-card">
-              <div class="section-heading">
-                <p>六階段長期執行模型</p>
-                <h2 id="growthTitle">不是每天有動力，是每天能回來</h2>
-              </div>
-              <div class="stage-grid" id="stageGrid"></div>
-            </section>
-            <section class="growth-card">
-              <div class="section-heading">
-                <p>一年目標</p>
-                <h2>99kg → 65kg</h2>
-              </div>
-              <div class="goal-timeline">
-                <article><span>第1～3月</span><strong>99kg → 89kg</strong></article>
-                <article><span>第4～6月</span><strong>89kg → 80kg</strong></article>
-                <article><span>第7～9月</span><strong>80kg → 73kg</strong></article>
-                <article><span>第10～12月</span><strong>73kg → 65kg</strong></article>
-              </div>
-            </section>
-            <section class="growth-card">
-              <div class="section-heading">
-                <p>我的減脂規則</p>
-                <h2>意圖 Intention</h2>
-              </div>
-              <ul class="workout-list">
-                <li><span>飲食</span>1500～1800 kcal，每餐有蛋白質</li>
-                <li><span>彈性</span>不禁甜食，每週可安排一次放鬆</li>
-                <li><span>運動</span>每週約4次，重訓2次</li>
-                <li><span>膝蓋</span>避免跑跳與高衝擊 HIIT</li>
-                <li><span>紀錄</span>有記錄比100%精準更重要</li>
-              </ul>
-            </section>
-            <section class="growth-card">
-              <div class="section-heading">
-                <p>失敗清單</p>
-                <h2>下一步回軌道</h2>
-              </div>
-              <div class="failure-list">
-                <article><strong>吃了蛋糕</strong><span>下一餐回正常，不補償性節食。</span></article>
-                <article><strong>晚餐爆量</strong><span>明天照常記錄，不放棄。</span></article>
-                <article><strong>沒運動</strong><span>明天做最低標準版。</span></article>
-                <article><strong>體重上升</strong><span>看7日平均，不看單日。</span></article>
-                <article><strong>小腿痠</strong><span>熱敷、伸展、降低強度。</span></article>
-                <article><strong>聚餐</strong><span>優先蛋白質，主食半份，飲料無糖。</span></article>
-              </div>
-            </section>
-          </div>
-        </section>
-
-        <section class="panel" id="templates" aria-labelledby="templatesTitle">
-          <div class="template-layout">
-            <section class="template-card">
-              <div class="section-heading">
-                <p>Ricky 風格</p>
-                <h2 id="templatesTitle">高碳重訓日飲食</h2>
-              </div>
-              <p class="template-note">
-                結構：早餐高蛋白＋原型碳水，午餐雞胸餐盒，運動前後補乳清與地瓜/芋頭，晚餐雞胸餐盒半飯。份量已改成較適合你目前減脂期。
-              </p>
-              <div class="meal-plan">
-                <article>
-                  <span>早餐</span>
-                  <strong>水煮蛋 1 顆＋無糖優格 150g＋燕麥 20g＋奇亞籽 5g＋芭樂 100g</strong>
-                </article>
-                <article>
-                  <span>午餐</span>
-                  <strong>黑胡椒雞胸健康餐盒，飯半份或飯換菜＋海藻/蔬菜沙拉</strong>
-                </article>
-                <article>
-                  <span>運動前</span>
-                  <strong>乳清 20g＋冷藏蒸芋頭或地瓜 100～150g</strong>
-                </article>
-                <article>
-                  <span>運動後</span>
-                  <strong>乳清 25g＋冷藏蒸地瓜 150g</strong>
-                </article>
-                <article>
-                  <span>晚餐</span>
-                  <strong>椒鹽/舒肥雞胸健康餐盒，半飯＋加菜，醬料少</strong>
-                </article>
-              </div>
-              <button class="primary-button" id="applyRickyMeals" type="button">套用到今日飲食</button>
-            </section>
-
-            <section class="template-card">
-              <div class="section-heading">
-                <p>Ricky 風格</p>
-                <h2>器械重訓菜單</h2>
-              </div>
-              <p class="template-note">
-                原型是短熱身、背部器械多組、手臂/腿部輔助、短收尾有氧與伸展。這版保留結構，但把膝蓋壓力調低。
-              </p>
-              <ul class="workout-list">
-                <li><span>熱身</span>跑步機快走 6～8 分鐘，坡度 2～4%，速度舒服可講話</li>
-                <li><span>背</span>高位下拉機 12 下 × 3 組</li>
-                <li><span>背</span>坐姿划船 12 下 × 3 組</li>
-                <li><span>肩背</span>反向飛鳥 12 下 × 2～3 組</li>
-                <li><span>腿</span>腿推機 12 下 × 3 組，膝蓋不鎖死</li>
-                <li><span>臀</span>臀外展機 15 下 × 3 組</li>
-                <li><span>手臂</span>三頭下壓或三頭機 12 下 × 2 組</li>
-                <li><span>有氧</span>橢圓機或腳踏車 8～12 分鐘</li>
-                <li><span>伸展</span>背闊肌、胸、肩後側、小腿各 30 秒 × 2</li>
-              </ul>
-              <details class="form-guide">
-                <summary>姿勢說明</summary>
-                <article>
-                  <strong>高位下拉機</strong>
-                  <p>坐穩、大腿墊壓住，胸口微開。先讓肩膀遠離耳朵，再把手肘往下拉，不需要拉到脖子後面。</p>
-                  <small>感覺：背闊肌出力，不是前臂先爆。</small>
-                </article>
-                <article>
-                  <strong>坐姿划船</strong>
-                  <p>身體固定，手肘貼近身體往後拉。拉到背有夾住感就停，不需要用腰往後倒。</p>
-                  <small>感覺：中背、肩胛附近發力。</small>
-                </article>
-                <article>
-                  <strong>反向飛鳥</strong>
-                  <p>手肘微彎，想像用手肘把把手往外打開。重量寧可輕，肩膀不要聳起來。</p>
-                  <small>感覺：肩膀後側與上背，不是脖子緊。</small>
-                </article>
-                <article>
-                  <strong>腿推機</strong>
-                  <p>腳放平台中間略高，膝蓋跟腳尖同方向。下放不要追求太深，膝蓋舒服、腰不離墊優先。</p>
-                  <small>膝蓋有壓力時：縮小角度、降重量、放慢速度。</small>
-                </article>
-                <article>
-                  <strong>三頭下壓</strong>
-                  <p>手肘固定在身體兩側，把繩索或把手往下壓到底，慢慢回來。身體不要前後晃。</p>
-                  <small>感覺：手臂後側出力。</small>
-                </article>
-                <article>
-                  <strong>收尾有氧</strong>
-                  <p>橢圓機或腳踏車維持可以講話的強度。小腿痠就降阻力，不用硬拚。</p>
-                  <small>目標：恢復與消耗，不是把自己操壞。</small>
-                </article>
               </details>
-              <button class="primary-button" id="applyRickyWorkout" type="button">套用到今日運動</button>
+            </section>
+
+            <section class="trend-card history-card">
+              <details class="form-guide" open>
+                <summary>歷史資料與圖表</summary>
+                <div class="history-stats" id="historyStats"></div>
+                <div class="history-chart" id="historyWeightChart" aria-label="歷史體重趨勢"></div>
+                <div class="history-list" id="historyList"></div>
+              </details>
+            </section>
+
+            <section class="trend-card history-card">
+              <details class="form-guide">
+                <summary>AI 教練知識庫</summary>
+                <div class="knowledge-list" id="coachKnowledgeList"></div>
+              </details>
             </section>
 
             <section class="template-card">
-              <div class="section-heading">
-                <p>執行規則</p>
-                <h2>照他的邏輯，不照他的份量硬吃</h2>
-              </div>
-              <div class="failure-list">
-                <article><strong>重訓日</strong><span>碳水放在早餐、運動前、運動後，晚餐半飯。</span></article>
-                <article><strong>外食</strong><span>雞胸/魚/蛋白質優先，飯半份，醬料少，加蔬菜纖維。</span></article>
-                <article><strong>紀錄</strong><span>用「早餐、午餐、運動前、運動後、晚餐」固定格式。</span></article>
-                <article><strong>甜食</strong><span>可計入熱量，放運動後或白天，控時控量。</span></article>
-              </div>
-              <p class="connection-status" id="templateStatus">模板尚未套用。</p>
+              <details class="form-guide">
+                <summary>Ricky 風格菜單模板</summary>
+                <p class="template-note">高蛋白、碳水配合訓練日，不追求極端節食。</p>
+                <div class="meal-plan">
+                  <article><span>早餐</span><strong>水煮蛋、無糖優格、燕麥、奇亞籽、芭樂</strong></article>
+                  <article><span>午餐</span><strong>雞胸健康餐盒，飯半份或飯換菜</strong></article>
+                  <article><span>運動前</span><strong>乳清 20g，加地瓜或芋頭</strong></article>
+                  <article><span>運動後</span><strong>乳清 25g，加地瓜 150g</strong></article>
+                  <article><span>晚餐</span><strong>雞胸健康餐盒，半飯，加菜，醬料少</strong></article>
+                </div>
+                <button class="primary-button" id="applyRickyMeals" type="button">套用到今日飲食</button>
+              </details>
+            </section>
+
+            <section class="template-card">
+              <details class="form-guide">
+                <summary>Ricky 風格重訓與姿勢說明</summary>
+                <ul class="workout-list">
+                  <li><span>暖身</span>快走 6-8 分鐘</li>
+                  <li><span>背部</span>高位下拉、坐姿划船、反向飛鳥</li>
+                  <li><span>腿臀</span>腿推、臀外展</li>
+                  <li><span>手臂</span>三頭 2 組</li>
+                  <li><span>有氧</span>橢圓機或腳踏車 8-12 分鐘</li>
+                </ul>
+                <p class="template-note">下拉先沉肩、划船不圓背、腿推膝蓋不鎖死。小腿痠就降低有氧阻力。</p>
+                <button class="primary-button" id="applyRickyWorkout" type="button">套用到今日運動</button>
+              </details>
+            </section>
+
+            <section class="template-card">
+              <details class="form-guide">
+                <summary>失敗清單與執行規則</summary>
+                <div class="failure-list">
+                  <article><strong>甜食</strong><span>不是禁止，是份量要漂亮，留熱量再吃。</span></article>
+                  <article><strong>太累</strong><span>改最低標準，不用硬拚滿分。</span></article>
+                  <article><strong>小腿痠</strong><span>降低衝擊，先顧恢復。</span></article>
+                  <article><strong>體重波動</strong><span>看七日平均，不被單日數字拉走。</span></article>
+                </div>
+                <p class="connection-status" id="templateStatus">模板尚未套用。</p>
+              </details>
             </section>
           </div>
         </section>
