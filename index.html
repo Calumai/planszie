@@ -427,17 +427,17 @@
                   <h2>教練設定</h2>
                 </div>
                 <label>
-                  OpenAI API Key
+                  OpenAI / OpenRouter API Key
                   <input
                     name="apiKey"
                     type="password"
                     autocomplete="off"
-                    placeholder="sk-..."
+                    placeholder="sk-... 或 sk-or-..."
                   />
                 </label>
                 <label>
                   模型
-                  <input name="model" type="text" value="gpt-4.1-mini" />
+                  <input name="model" type="text" value="openai/gpt-4.1-mini" />
                 </label>
                 <button class="ghost-button" type="submit">儲存設定</button>
                 <p class="connection-status" id="aiStatus">目前使用本機陪跑回覆</p>
@@ -527,6 +527,22 @@
                   <strong id="exerciseCount">0</strong>
                 </article>
               </div>
+            </section>
+            <section class="trend-card history-card">
+              <div class="section-heading">
+                <p>PDF 歷史紀錄</p>
+                <h2>Day001～Day019 減脂軌跡</h2>
+              </div>
+              <div class="history-stats" id="historyStats"></div>
+              <div class="history-chart" id="historyWeightChart" aria-label="歷史體重曲線"></div>
+              <div class="history-list" id="historyList"></div>
+            </section>
+            <section class="trend-card history-card">
+              <div class="section-heading">
+                <p>AI 教練知識庫</p>
+                <h2>從歷史紀錄整理出的陪跑原則</h2>
+              </div>
+              <div class="knowledge-list" id="coachKnowledgeList"></div>
             </section>
           </div>
         </section>
@@ -690,6 +706,7 @@
       </main>
     </div>
 
+    <script src="history-data.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

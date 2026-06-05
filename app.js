@@ -5,6 +5,7 @@ const aiSettingsKey = "fatLossCompanion:aiSettings";
 const gasSettingsKey = "fatLossCompanion:gasSettings";
 const defaultGasUrl =
   "https://script.google.com/macros/s/AKfycbzbYDTgjK4oL0KYJ9X_mvfym59Sc35HE8FgH_67QTjAazDIDbmscql4yO_ee5resG08/exec";
+const defaultOpenRouterModel = "openai/gpt-4.1-mini";
 
 const defaultState = {
   dayType: "normal",
@@ -276,11 +277,11 @@ function loadAiSettings() {
   try {
     return {
       apiKey: "",
-      model: "gpt-4.1-mini",
+      model: defaultOpenRouterModel,
       ...JSON.parse(localStorage.getItem(aiSettingsKey)),
     };
   } catch {
-    return { apiKey: "", model: "gpt-4.1-mini" };
+    return { apiKey: "", model: defaultOpenRouterModel };
   }
 }
 
@@ -633,6 +634,19 @@ function buildCoachPrompt(question) {
   const totals = getTotals();
   const target = activeTarget();
   const remaining = target.calories - totals.calories + totals.exercise;
+  const history = window.fatLossHistory;
+  const historySummary = history
+    ? [
+        `歷史起點：${history.startWeight}kg，PDF 紀錄最低/近期：${history.currentHistoricalWeight}kg，目標：${history.goalWeight}kg`,
+        `歷史體重：${history.entries
+          .filter((entry) => entry.weight)
+          .map((entry) => `${entry.label} ${entry.weight}kg`)
+          .join("；")}`,
+        `AI教練原則：${history.coachKnowledge
+          .map((item) => `${item.title}：${item.body}`)
+          .join("；")}`,
+      ].join("\n")
+    : "尚未載入歷史資料。";
 
   return `
 使用者設定：
@@ -667,6 +681,9 @@ function buildCoachPrompt(question) {
 - 運動紀錄：${state.exercises.map((exercise) => `${exercise.exerciseType} ${exercise.duration}分鐘 ${exercise.caloriesBurned}kcal 膝蓋:${exercise.kneeStatus || "未填"} 小腿:${exercise.calfSoreness || "未填"} ${exercise.note || ""}`).join("；") || "尚無"}
 - 今日最低標準：${stages[state.stage]?.minimum || stages.discipline.minimum}
 
+PDF 歷史紀錄與教練知識庫：
+${historySummary}
+
 使用者問題：${question}
 
 請用繁體中文回答。語氣像朋友陪跑，但要專業。不要羞辱，不要恐嚇，不要極端節食，不要把食物絕對禁止。當她狀態差時啟動最低標準模式；當她失誤時提醒下一餐回正軌即可。請算數字、做判斷、給下一步。回覆控制在 180 字內。
@@ -681,7 +698,7 @@ async function askOpenAICoach(question) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: aiSettings.model || "gpt-4.1-mini",
+        model: aiSettings.model || defaultOpenRouterModel,
         prompt: buildCoachPrompt(question),
       }),
     });
@@ -694,6 +711,41 @@ async function askOpenAICoach(question) {
 
   if (!aiSettings.apiKey) {
     return null;
+  }
+
+  if (aiSettings.apiKey.startsWith("sk-or-")) {
+    const model = aiSettings.model?.includes("/") ? aiSettings.model : `openai/${aiSettings.model || "gpt-4.1-mini"}`;
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${aiSettings.apiKey}`,
+        "HTTP-Referer": location.href,
+        "X-Title": "AI Fat Loss Companion",
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          {
+            role: "system",
+            content:
+              "你是減脂陪跑 AI 教練。以長期可持續執行為核心，回答要專業、溫和、務實，不羞辱、不恐嚇、不鼓勵極端節食。",
+          },
+          {
+            role: "user",
+            content: buildCoachPrompt(question),
+          },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText || `OpenRouter request failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.choices?.[0]?.message?.content || null;
   }
 
   const response = await fetch("https://api.openai.com/v1/responses", {
@@ -751,10 +803,11 @@ async function answerCoachQuestion(question, button) {
   try {
     const reply = await askOpenAICoach(question);
     waitingMessage.textContent = reply || coachReply(question);
-    $("#aiStatus").textContent = "已使用 OpenAI 回覆";
-  } catch {
-    waitingMessage.textContent = `${coachReply(question)}\n\nOpenAI 連線沒有成功，先用本機回覆陪你。`;
-    $("#aiStatus").textContent = "OpenAI 連線失敗，已切回本機回覆";
+    $("#aiStatus").textContent = aiSettings.apiKey?.startsWith("sk-or-") ? "已使用 OpenRouter 回覆" : "已使用 OpenAI 回覆";
+  } catch (error) {
+    const provider = aiSettings.apiKey?.startsWith("sk-or-") ? "OpenRouter" : "OpenAI";
+    waitingMessage.textContent = `${coachReply(question)}\n\n${provider} 連線沒有成功，先用本機回覆陪你。錯誤：${error.message.slice(0, 180)}`;
+    $("#aiStatus").textContent = `${provider} 連線失敗，已切回本機回覆`;
   } finally {
     if (button) {
       button.disabled = false;
@@ -815,9 +868,13 @@ function render() {
   });
   $("#proteinRate").textContent = `${Math.min(Math.round((totals.protein / proteinTarget) * 100), 100)}%`;
   $("#exerciseCount").textContent = state.exercises.length;
-  $("#aiSettingsForm").elements.model.value = aiSettings.model || "gpt-4.1-mini";
+  $("#aiSettingsForm").elements.model.value = aiSettings.model || defaultOpenRouterModel;
   $("#aiSettingsForm").elements.apiKey.value = aiSettings.apiKey || "";
-  $("#aiStatus").textContent = aiSettings.apiKey ? "已儲存 API key，送出問題會嘗試 OpenAI" : "目前使用本機陪跑回覆";
+  $("#aiStatus").textContent = aiSettings.apiKey
+    ? aiSettings.apiKey.startsWith("sk-or-")
+      ? "已儲存 OpenRouter key，送出問題會嘗試 OpenRouter"
+      : "已儲存 OpenAI key，送出問題會嘗試 OpenAI"
+    : "目前使用本機陪跑回覆";
   $("#gasSettingsForm").elements.gasUrl.value = gasSettings.gasUrl || "";
   $("#gasCodeBlock").textContent = gasCode;
   setGasStatus(
@@ -829,6 +886,7 @@ function render() {
   renderRecords();
   renderSummary();
   renderWeightChart();
+  renderHistoryData();
   renderGrowth();
 }
 
@@ -929,6 +987,80 @@ function renderWeightChart() {
       const height = 28 + ((max - item.weight) / range) * 150;
       return `<div class="trend-bar" title="${item.date} · ${item.weight}kg" style="height:${height}px"></div>`;
     })
+    .join("");
+}
+
+function renderHistoryData() {
+  const history = window.fatLossHistory;
+  const stats = $("#historyStats");
+  const chart = $("#historyWeightChart");
+  const list = $("#historyList");
+  const knowledge = $("#coachKnowledgeList");
+
+  if (!stats || !chart || !list || !knowledge) {
+    return;
+  }
+
+  if (!history?.entries?.length) {
+    stats.innerHTML = '<div class="empty-state">尚未載入 PDF 歷史資料。</div>';
+    chart.innerHTML = "";
+    list.innerHTML = "";
+    knowledge.innerHTML = "";
+    return;
+  }
+
+  const weightedEntries = history.entries.filter((entry) => Number(entry.weight));
+  const firstWeight = weightedEntries[0]?.weight || history.startWeight;
+  const latestWeight = [...weightedEntries].reverse()[0]?.weight || history.currentHistoricalWeight;
+  const lost = firstWeight - latestWeight;
+  const totalGoal = firstWeight - history.goalWeight;
+  const progress = totalGoal > 0 ? Math.max(0, Math.min((lost / totalGoal) * 100, 100)) : 0;
+
+  stats.innerHTML = `
+    <article><span>歷史起點</span><strong>${firstWeight.toFixed(1)} kg</strong></article>
+    <article><span>PDF 最新</span><strong>${latestWeight.toFixed(1)} kg</strong></article>
+    <article><span>已下降</span><strong>${lost.toFixed(1)} kg</strong></article>
+    <article><span>70kg 進度</span><strong>${Math.round(progress)}%</strong></article>
+  `;
+
+  const max = Math.max(...weightedEntries.map((entry) => entry.weight));
+  const min = Math.min(...weightedEntries.map((entry) => entry.weight));
+  const range = Math.max(max - min, 0.8);
+  chart.innerHTML = weightedEntries
+    .map((entry) => {
+      const height = 38 + ((max - entry.weight) / range) * 150;
+      return `
+        <div class="history-point" style="height:${height}px" title="${entry.label} ${entry.weight}kg">
+          <strong>${entry.weight.toFixed(1)}</strong>
+          <span>${entry.label.replace("Day", "D")}</span>
+        </div>
+      `;
+    })
+    .join("");
+
+  list.innerHTML = history.entries
+    .map(
+      (entry) => `
+        <article class="history-entry">
+          <div>
+            <strong>${entry.label}</strong>
+            <span>${entry.weight ? `${entry.weight.toFixed(1)} kg` : "歷史事件"}</span>
+          </div>
+          <p>${escapeHtml(entry.summary)}</p>
+        </article>
+      `,
+    )
+    .join("");
+
+  knowledge.innerHTML = history.coachKnowledge
+    .map(
+      (item) => `
+        <article class="knowledge-entry">
+          <strong>${escapeHtml(item.title)}</strong>
+          <p>${escapeHtml(item.body)}</p>
+        </article>
+      `,
+    )
     .join("");
 }
 
@@ -1062,10 +1194,14 @@ function setupEvents() {
     const data = new FormData(event.currentTarget);
     aiSettings = {
       apiKey: data.get("apiKey").trim(),
-      model: data.get("model").trim() || "gpt-4.1-mini",
+      model: data.get("model").trim() || defaultOpenRouterModel,
     };
     saveAiSettings();
-    $("#aiStatus").textContent = aiSettings.apiKey ? "設定已儲存" : "目前使用本機陪跑回覆";
+    $("#aiStatus").textContent = aiSettings.apiKey?.startsWith("sk-or-")
+      ? "OpenRouter 設定已儲存"
+      : aiSettings.apiKey
+        ? "OpenAI 設定已儲存"
+        : "目前使用本機陪跑回覆";
   });
 
   $("#gasSettingsForm").addEventListener("submit", (event) => {
