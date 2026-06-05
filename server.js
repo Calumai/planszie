@@ -42,6 +42,7 @@ function buildCoachRequest(prompt, model) {
       endpoint: "https://openrouter.ai/api/v1/chat/completions",
       body: {
         model: selectedModel,
+        max_tokens: 450,
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: prompt },

@@ -725,6 +725,7 @@ async function askOpenAICoach(question) {
       },
       body: JSON.stringify({
         model,
+        max_tokens: 450,
         messages: [
           {
             role: "system",
@@ -741,7 +742,12 @@ async function askOpenAICoach(question) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(errorText || `OpenRouter request failed: ${response.status}`);
+      let message = errorText || `OpenRouter request failed: ${response.status}`;
+      try {
+        const parsed = JSON.parse(errorText);
+        message = parsed.error?.message || parsed.message || message;
+      } catch {}
+      throw new Error(message);
     }
 
     const data = await response.json();
