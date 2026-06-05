@@ -3,6 +3,8 @@ const storageKey = `fatLossCompanion:${todayKey}`;
 const weightKey = "fatLossCompanion:weights";
 const aiSettingsKey = "fatLossCompanion:aiSettings";
 const gasSettingsKey = "fatLossCompanion:gasSettings";
+const defaultGasUrl =
+  "https://script.google.com/macros/s/AKfycbzbYDTgjK4oL0KYJ9X_mvfym59Sc35HE8FgH_67QTjAazDIDbmscql4yO_ee5resG08/exec";
 
 const defaultState = {
   dayType: "normal",
@@ -288,9 +290,10 @@ function saveAiSettings() {
 
 function loadGasSettings() {
   try {
-    return { gasUrl: "", ...JSON.parse(localStorage.getItem(gasSettingsKey)) };
+    const saved = JSON.parse(localStorage.getItem(gasSettingsKey));
+    return { gasUrl: saved?.gasUrl || defaultGasUrl };
   } catch {
-    return { gasUrl: "" };
+    return { gasUrl: defaultGasUrl };
   }
 }
 
@@ -819,7 +822,7 @@ function render() {
   $("#gasCodeBlock").textContent = gasCode;
   setGasStatus(
     gasSettings.gasUrl
-      ? "GAS 已連接。記錄更新時會自動背景推送，也可以手動推送/讀取。"
+      ? "GAS 已內建並連接。記錄更新時會自動背景推送，也可以手動推送/讀取。"
       : "未連接 GAS。貼上 Web App URL 後，手機資料可以同步到 Google Sheets。",
   );
 
@@ -1067,8 +1070,7 @@ function setupEvents() {
 
   $("#gasSettingsForm").addEventListener("submit", (event) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const gasUrl = data.get("gasUrl").trim();
+    const gasUrl = defaultGasUrl;
 
     if (gasUrl && !gasUrl.startsWith("https://script.google.com/")) {
       setGasStatus("GAS URL 格式不對，應該是 https://script.google.com/macros/s/.../exec");
@@ -1077,10 +1079,9 @@ function setupEvents() {
 
     gasSettings = { gasUrl };
     saveGasSettings();
-    setGasStatus(gasUrl ? "GAS 連結已儲存，正在推送目前資料..." : "已清除 GAS 連結。");
-    if (gasUrl) {
-      pushToGas().catch(() => setGasStatus("GAS 推送失敗，請確認部署權限是 Anyone。"));
-    }
+    event.currentTarget.elements.gasUrl.value = gasUrl;
+    setGasStatus("固定 GAS 已重新套用，正在推送目前資料...");
+    pushToGas().catch(() => setGasStatus("GAS 推送失敗，請確認部署權限是 Anyone。"));
   });
 
   $("#pushGas").addEventListener("click", () => {

@@ -487,21 +487,22 @@
                 </div>
                 <form class="gas-form" id="gasSettingsForm">
                   <label>
-                    GAS Web App URL
+                    固定 GAS Web App URL
                     <input
                       name="gasUrl"
                       type="url"
-                      placeholder="https://script.google.com/macros/s/.../exec"
+                      value="https://script.google.com/macros/s/AKfycbzbYDTgjK4oL0KYJ9X_mvfym59Sc35HE8FgH_67QTjAazDIDbmscql4yO_ee5resG08/exec"
+                      readonly
                     />
                   </label>
-                  <button class="ghost-button" type="submit">儲存 GAS 連結</button>
+                  <button class="ghost-button" type="submit">重新套用固定 GAS</button>
                 </form>
                 <div class="backup-actions">
                   <button class="ghost-button" id="pushGas" type="button">推送到雲端</button>
                   <button class="ghost-button" id="pullGas" type="button">從雲端讀取</button>
                 </div>
                 <p class="connection-status" id="gasStatus">
-                  未連接 GAS。貼上 Web App URL 後，手機資料可以同步到 Google Sheets。
+                  GAS 已內建。記錄更新時會自動同步到 Google Sheets。
                 </p>
                 <details class="form-guide">
                   <summary>GAS 程式碼</summary>
