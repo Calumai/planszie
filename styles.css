@@ -881,6 +881,44 @@ progress::-webkit-progress-value {
   border-radius: 8px;
 }
 
+.history-days-heading {
+  margin-top: 18px;
+}
+
+.saved-day-records {
+  display: grid;
+  gap: 10px;
+}
+
+.day-record-button {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 12px;
+  width: 100%;
+  padding: 12px 14px;
+  color: var(--ink);
+  background: var(--soft);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  text-align: left;
+}
+
+.day-record-button span,
+.day-record-button strong {
+  font-weight: 800;
+}
+
+.day-record-button small {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.day-record-button.is-active {
+  background: #eaf4ee;
+  border-color: rgba(63, 157, 125, 0.55);
+}
+
 .history-card {
   grid-column: 1 / -1;
 }

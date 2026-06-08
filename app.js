@@ -1,5 +1,13 @@
-const todayKey = new Date().toISOString().slice(0, 10);
-const storageKey = `fatLossCompanion:${todayKey}`;
+function formatLocalDate(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+const todayKey = formatLocalDate();
+let activeDateKey = todayKey;
+let storageKey = `fatLossCompanion:${activeDateKey}`;
 const weightKey = "fatLossCompanion:weights";
 const aiSettingsKey = "fatLossCompanion:aiSettings";
 const gasSettingsKey = "fatLossCompanion:gasSettings";
@@ -245,8 +253,8 @@ function saveTodayWeight(weight) {
     return;
   }
 
-  const existingIndex = weights.findIndex((item) => item.date === todayKey);
-  const entry = { date: todayKey, weight: Number(weight) };
+  const existingIndex = weights.findIndex((item) => item.date === activeDateKey);
+  const entry = { date: activeDateKey, weight: Number(weight) };
 
   if (existingIndex >= 0) {
     weights[existingIndex] = entry;
@@ -255,6 +263,39 @@ function saveTodayWeight(weight) {
   }
 
   saveWeights();
+}
+
+function getSavedDayEntries() {
+  const entries = [];
+  for (let index = 0; index < localStorage.length; index += 1) {
+    const key = localStorage.key(index);
+    const match = key?.match(/^fatLossCompanion:(\d{4}-\d{2}-\d{2})$/);
+    if (!match) {
+      continue;
+    }
+
+    try {
+      const saved = JSON.parse(localStorage.getItem(key));
+      entries.push({
+        date: match[1],
+        foods: saved?.foods?.length || 0,
+        exercises: saved?.exercises?.length || 0,
+        weight: saved?.body?.weight || "",
+        calories: (saved?.foods || []).reduce((total, food) => total + Number(food.calories || 0), 0),
+      });
+    } catch {
+      entries.push({ date: match[1], foods: 0, exercises: 0, weight: "", calories: 0 });
+    }
+  }
+
+  return entries.sort((a, b) => b.date.localeCompare(a.date));
+}
+
+function loadDay(date) {
+  activeDateKey = date;
+  storageKey = `fatLossCompanion:${activeDateKey}`;
+  state = loadState();
+  render();
 }
 
 function loadAiSettings() {
@@ -300,7 +341,7 @@ function getAllAppStorage() {
 function getCloudPayload() {
   const totals = getTotals();
   return {
-    date: todayKey,
+    date: activeDateKey,
     weight: state.body.weight || "",
     water: state.habits.water ? 1 : 0,
     fastStart: "",
@@ -420,7 +461,7 @@ function exportAllData() {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `減脂陪跑備份-${todayKey}.json`;
+  link.download = `減脂陪跑備份-${activeDateKey}.json`;
   link.click();
   URL.revokeObjectURL(url);
 }
@@ -926,7 +967,7 @@ function render() {
     month: "long",
     day: "numeric",
     weekday: "long",
-  }).format(new Date());
+  }).format(new Date(`${activeDateKey}T12:00:00`));
 
   $("#dayType").value = state.dayType;
   $("#stageSelect").value = state.stage;
@@ -984,6 +1025,7 @@ function render() {
 
   renderRecords();
   renderSummary();
+  renderSavedDayRecords();
   renderWeightChart();
   renderHistoryData();
   renderGrowth();
@@ -1020,6 +1062,28 @@ function renderRecords() {
         )
         .join("")
     : '<div class="empty-state">今天還沒有運動紀錄。</div>';
+}
+
+function renderSavedDayRecords() {
+  const historyContainer = $("#savedDayRecords");
+  if (!historyContainer) {
+    return;
+  }
+
+  const entries = getSavedDayEntries();
+  historyContainer.innerHTML = entries.length
+    ? entries
+        .map(
+          (entry) => `
+            <button class="day-record-button ${entry.date === activeDateKey ? "is-active" : ""}" type="button" data-date="${entry.date}">
+              <span>${entry.date === todayKey ? "今天" : entry.date}</span>
+              <strong>${formatNumber(entry.calories)} kcal</strong>
+              <small>${entry.foods} 餐 / ${entry.exercises} 運動${entry.weight ? ` / ${entry.weight}kg` : ""}</small>
+            </button>
+          `,
+        )
+        .join("")
+    : '<div class="empty-state">目前還沒有歷史日紀錄。</div>';
 }
 
 function renderSummary() {
@@ -1180,6 +1244,14 @@ function setupEvents() {
       button.classList.add("is-active");
       $(`#${button.dataset.tab}`).classList.add("is-active");
     });
+  });
+
+  $("#savedDayRecords")?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-date]");
+    if (!button) {
+      return;
+    }
+    loadDay(button.dataset.date);
   });
 
   $("#dayType").addEventListener("change", (event) => {
