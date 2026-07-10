@@ -1496,3 +1496,24 @@ h1 {
 .macro-chip-row {
   grid-template-columns: 1fr;
 }
+
+@media (max-width: 900px), (hover: none) and (pointer: coarse) {
+  body {
+    background: linear-gradient(135deg, #fbf7ef 0%, #f3f8f4 48%, #eef5f7 100%);
+  }
+
+  .app-shell {
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    box-shadow: none;
+  }
+
+  .bottom-tabs {
+    right: 0;
+    left: 0;
+    width: 100%;
+    max-width: none;
+    transform: none;
+  }
+}
