@@ -1367,3 +1367,132 @@ progress::-webkit-progress-value {
     grid-template-columns: 1fr;
   }
 }
+
+/* The product is meant to feel like a mobile app everywhere, including desktop previews. */
+body {
+  background:
+    linear-gradient(90deg, rgba(37, 49, 44, 0.06), transparent 16%, transparent 84%, rgba(37, 49, 44, 0.06)),
+    linear-gradient(135deg, #fbf7ef 0%, #f3f8f4 48%, #eef5f7 100%);
+}
+
+.app-shell {
+  display: block;
+  width: min(100%, 430px);
+  min-height: 100vh;
+  margin: 0 auto;
+  background: rgba(255, 255, 255, 0.48);
+  box-shadow: 0 24px 80px rgba(37, 49, 44, 0.12);
+}
+
+.sidebar {
+  position: static;
+  display: block;
+  padding: 18px 18px 0;
+  background: rgba(255, 255, 255, 0.84);
+  border-right: 0;
+  border-bottom: 1px solid var(--line);
+  backdrop-filter: none;
+}
+
+.main-content {
+  padding: 18px 18px 118px;
+  overflow: visible;
+}
+
+.brand {
+  margin-bottom: 4px;
+}
+
+.profile-card {
+  display: none;
+}
+
+.bottom-tabs {
+  position: fixed;
+  right: auto;
+  bottom: 0;
+  left: 50%;
+  z-index: 20;
+  display: grid;
+  width: min(100%, 430px);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+  background: rgba(255, 255, 255, 0.94);
+  border-top: 1px solid var(--line);
+  box-shadow: 0 -12px 34px rgba(37, 49, 44, 0.1);
+  transform: translateX(-50%);
+  backdrop-filter: blur(18px);
+}
+
+.bottom-tabs .tab-button {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-height: 58px;
+  padding: 6px 4px;
+  font-size: 0.82rem;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.bottom-tabs .tab-button span {
+  width: 28px;
+  height: 28px;
+}
+
+.today-layout,
+.mine-layout,
+.records-layout,
+.chat-layout,
+.growth-layout,
+.template-layout,
+.dashboard-grid,
+.two-column,
+.summary-metrics,
+.compact-macros,
+.profile-facts,
+.history-stats,
+.form-grid,
+.metric-row,
+.chat-form,
+.backup-actions,
+.recognition-actions {
+  grid-template-columns: 1fr;
+}
+
+.topbar {
+  display: grid;
+}
+
+h1 {
+  font-size: 1.9rem;
+}
+
+.summary-panel,
+.coach-card,
+.habit-panel,
+.body-panel,
+.entry-form,
+.daily-summary,
+.chat-panel,
+.quick-prompts,
+.trend-card,
+.backup-card,
+.growth-card,
+.template-card {
+  padding: 16px;
+}
+
+.calculator-grid button {
+  min-height: 66px;
+  font-size: 1.36rem;
+}
+
+.calculator-display strong {
+  font-size: 2.35rem;
+}
+
+.macro-chip-row {
+  grid-template-columns: 1fr;
+}
