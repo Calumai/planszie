@@ -1231,7 +1231,7 @@ progress::-webkit-progress-value {
   text-align: center;
 }
 
-@media (max-width: 980px) {
+@media (max-width: 1500px) {
   .app-shell,
   .dashboard-grid,
   .today-layout,
@@ -1244,6 +1244,10 @@ progress::-webkit-progress-value {
     grid-template-columns: 1fr;
   }
 
+  .app-shell {
+    display: block;
+  }
+
   .growth-card:first-child {
     grid-row: auto;
   }
@@ -1254,39 +1258,15 @@ progress::-webkit-progress-value {
 
   .sidebar {
     position: static;
+    display: block;
+    padding: 18px 18px 0;
     border-right: 0;
     border-bottom: 1px solid var(--line);
-  }
-
-  .tabs {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-
-  .summary-metrics,
-  .compact-macros,
-  .profile-facts,
-  .history-stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .profile-card {
-    display: none;
-  }
-}
-
-@media (max-width: 640px) {
-  .main-content,
-  .sidebar {
-    padding: 18px;
+    backdrop-filter: none;
   }
 
   .main-content {
-    padding-bottom: 96px;
-  }
-
-  .sidebar {
-    padding-bottom: 0;
-    backdrop-filter: none;
+    padding: 18px 18px 118px;
   }
 
   .brand {
@@ -1324,11 +1304,36 @@ progress::-webkit-progress-value {
     height: 28px;
   }
 
+  .summary-metrics,
+  .compact-macros,
+  .profile-facts,
+  .history-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profile-card {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .main-content,
+  .sidebar {
+    padding: 18px;
+  }
+
+  .main-content {
+    padding-bottom: 118px;
+  }
+
+  .sidebar {
+    padding-bottom: 0;
+  }
+
   .topbar {
     display: grid;
   }
 
-  .tabs,
   .form-grid,
   .metric-row,
   .chat-form,
