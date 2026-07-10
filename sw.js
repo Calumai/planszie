@@ -1,4 +1,4 @@
-const cacheName = "fat-loss-companion-v11";
+const cacheName = "fat-loss-companion-v12";
 const assets = [
   "./",
   "./index.html",
@@ -11,6 +11,7 @@ const assets = [
 ];
 
 self.addEventListener("install", (event) => {
+  self.skipWaiting();
   event.waitUntil(caches.open(cacheName).then((cache) => cache.addAll(assets)));
 });
 
@@ -20,6 +21,7 @@ self.addEventListener("activate", (event) => {
       .keys()
       .then((keys) => Promise.all(keys.filter((key) => key !== cacheName).map((key) => caches.delete(key)))),
   );
+  self.clients.claim();
 });
 
 self.addEventListener("fetch", (event) => {
