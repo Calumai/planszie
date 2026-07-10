@@ -212,6 +212,8 @@ let aiSettings = loadAiSettings();
 let gasSettings = loadGasSettings();
 let deferredInstallPrompt = null;
 let gasSyncTimer = null;
+let calorieDraft = "";
+let shouldReplaceCalorieDraft = false;
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => Array.from(document.querySelectorAll(selector));
@@ -652,6 +654,203 @@ function estimateFood(text) {
     fat: Math.round(estimated.fat * 10) / 10,
     confidence: estimated.unknownCount ? "medium" : "high",
   };
+}
+
+function updateCalorieDisplay(value = calorieDraft) {
+  const display = $("#calorieDisplay");
+  if (!display) {
+    return;
+  }
+
+  display.textContent = value || "0";
+}
+
+function calculateDraftValue() {
+  const parts = calorieDraft
+    .split("+")
+    .map((part) => Number(part.trim()))
+    .filter((part) => Number.isFinite(part));
+
+  if (!parts.length) {
+    return 0;
+  }
+
+  return parts.reduce((total, value) => total + value, 0);
+}
+
+function fillCaloriesFromDraft() {
+  const form = $("#foodForm");
+  const calories = calculateDraftValue();
+  if (!form || !calories) {
+    return;
+  }
+
+  form.elements.calories.value = calories;
+  shouldReplaceCalorieDraft = true;
+  $("#foodEstimate").textContent = `已填入 ${formatNumber(calories)} kcal。若這餐有多個品項，可以用 320＋180 這樣相加。`;
+}
+
+function applyEstimateToFoodForm() {
+  const form = $("#foodForm");
+  const foodName = form.elements.foodName.value.trim();
+  if (!foodName) {
+    $("#recognitionStatus").textContent = "先輸入餐點內容，我才能幫你估算。";
+    return;
+  }
+
+  const estimate = estimateFood(foodName);
+  form.elements.calories.value = estimate.calories;
+  form.elements.protein.value = estimate.protein;
+  form.elements.carbs.value = estimate.carbs;
+  form.elements.fat.value = estimate.fat;
+  calorieDraft = String(estimate.calories);
+  shouldReplaceCalorieDraft = true;
+  updateCalorieDisplay();
+  $("#foodEstimate").textContent = `辨識後先估 ${formatNumber(estimate.calories)} kcal，蛋白質 ${formatNumber(estimate.protein)}g、碳水 ${formatNumber(estimate.carbs)}g、脂肪 ${formatNumber(estimate.fat)}g。`;
+  $("#recognitionStatus").textContent = estimate.confidence === "high" ? "已依克數填入估算，可再手動微調。" : "已填入保守估算，建議送出前再修一下份量。";
+}
+
+function addMacroPreset(kind) {
+  const form = $("#foodForm");
+  const presets = {
+    protein: ["protein", 20],
+    carbs: ["carbs", 30],
+    fat: ["fat", 10],
+  };
+  const preset = presets[kind];
+
+  if (!form || !preset) {
+    return;
+  }
+
+  const [fieldName, value] = preset;
+  const field = form.elements[fieldName];
+  field.value = Number(field.value || 0) + value;
+}
+
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", () => resolve(reader.result));
+    reader.addEventListener("error", () => reject(reader.error));
+    reader.readAsDataURL(file);
+  });
+}
+
+function parseNutritionJson(text) {
+  const jsonText = text.match(/\{[\s\S]*\}/)?.[0] || text;
+  const parsed = JSON.parse(jsonText);
+
+  return {
+    foodName: parsed.foodName || parsed.food || parsed.name || "",
+    calories: Number(parsed.calories) || 0,
+    protein: Number(parsed.protein) || 0,
+    carbs: Number(parsed.carbs) || 0,
+    fat: Number(parsed.fat) || 0,
+  };
+}
+
+async function askVisionForFood(dataUrl) {
+  const prompt =
+    "請辨識照片中的餐點並估算營養。只回傳 JSON，不要 Markdown。格式：{\"foodName\":\"餐點描述\",\"calories\":數字,\"protein\":數字,\"carbs\":數字,\"fat\":數字}。無法判斷時也請給保守估算。";
+
+  if (aiSettings.apiKey?.startsWith("sk-or-")) {
+    const model = aiSettings.model?.includes("/") ? aiSettings.model : `openai/${aiSettings.model || "gpt-4.1-mini"}`;
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${aiSettings.apiKey}`,
+        "HTTP-Referer": location.href,
+        "X-Title": "AI Fat Loss Companion",
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          {
+            role: "user",
+            content: [
+              { type: "text", text: prompt },
+              { type: "image_url", image_url: { url: dataUrl } },
+            ],
+          },
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error("OpenRouter photo recognition failed");
+    }
+
+    const result = await response.json();
+    return result.choices?.[0]?.message?.content || "";
+  }
+
+  const response = await fetch("https://api.openai.com/v1/responses", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${aiSettings.apiKey}`,
+    },
+    body: JSON.stringify({
+      model: aiSettings.model || "gpt-4.1-mini",
+      input: [
+        {
+          role: "user",
+          content: [
+            { type: "input_text", text: prompt },
+            { type: "input_image", image_url: dataUrl },
+          ],
+        },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error("OpenAI photo recognition failed");
+  }
+
+  const result = await response.json();
+  return (
+    result.output_text ||
+    result.output
+      ?.flatMap((item) => item.content || [])
+      ?.map((content) => content.text)
+      ?.filter(Boolean)
+      ?.join("\n") ||
+    ""
+  );
+}
+
+async function recognizeFoodPhoto(file) {
+  const status = $("#recognitionStatus");
+  const preview = $("#photoPreview");
+  const dataUrl = await fileToDataUrl(file);
+
+  preview.src = dataUrl;
+  preview.hidden = false;
+
+  if (!aiSettings.apiKey) {
+    status.textContent = "照片已放上來。若要自動辨識照片，請先在 AI 教練頁儲存 OpenRouter 或 OpenAI API Key；現在可先用文字描述後按辨識。";
+    return;
+  }
+
+  status.textContent = "正在辨識照片中的餐點...";
+  const estimate = parseNutritionJson(await askVisionForFood(dataUrl));
+  const form = $("#foodForm");
+
+  if (estimate.foodName) {
+    form.elements.foodName.value = estimate.foodName;
+  }
+  form.elements.calories.value = estimate.calories || "";
+  form.elements.protein.value = estimate.protein || "";
+  form.elements.carbs.value = estimate.carbs || "";
+  form.elements.fat.value = estimate.fat || "";
+  calorieDraft = estimate.calories ? String(estimate.calories) : "";
+  shouldReplaceCalorieDraft = true;
+  updateCalorieDisplay();
+  status.textContent = "照片辨識已填入表單，送出前可以再修正。";
+  $("#foodEstimate").textContent = `照片先估 ${formatNumber(estimate.calories)} kcal，蛋白質 ${formatNumber(estimate.protein)}g、碳水 ${formatNumber(estimate.carbs)}g、脂肪 ${formatNumber(estimate.fat)}g。`;
 }
 
 function estimateExercise(type, duration) {
@@ -1326,7 +1525,65 @@ function setupEvents() {
           : "食物名稱不夠明確，先用一般外食保守估算。";
     $("#foodEstimate").textContent = `這餐估 ${formatNumber(food.calories)} kcal，蛋白質 ${formatNumber(food.protein)}g、碳水 ${formatNumber(food.carbs)}g、脂肪 ${formatNumber(food.fat)}g。${estimateNote}`;
     event.currentTarget.reset();
+    calorieDraft = "";
+    shouldReplaceCalorieDraft = false;
+    updateCalorieDisplay();
     render();
+  });
+
+  $$(".calculator-grid button").forEach((button) => {
+    button.addEventListener("click", () => {
+      const key = button.dataset.calKey;
+
+      if (/^\d+$/.test(key)) {
+        if (shouldReplaceCalorieDraft) {
+          calorieDraft = "";
+          shouldReplaceCalorieDraft = false;
+        }
+        calorieDraft = `${calorieDraft}${key}`.replace(/^0+(\d)/, "$1");
+      } else if (key === "+") {
+        shouldReplaceCalorieDraft = false;
+        if (calorieDraft && !calorieDraft.endsWith("+")) {
+          calorieDraft += "+";
+        }
+      } else if (key === "back") {
+        calorieDraft = calorieDraft.slice(0, -1);
+        shouldReplaceCalorieDraft = false;
+      } else if (key === "clear") {
+        calorieDraft = "";
+        shouldReplaceCalorieDraft = false;
+      } else if (key === "estimate") {
+        applyEstimateToFoodForm();
+        return;
+      } else if (key === "done") {
+        fillCaloriesFromDraft();
+      }
+
+      updateCalorieDisplay();
+    });
+  });
+
+  $$(".macro-chip-row button").forEach((button) => {
+    button.addEventListener("click", () => {
+      addMacroPreset(button.dataset.macroPreset);
+    });
+  });
+
+  $("#recognizeText").addEventListener("click", applyEstimateToFoodForm);
+
+  $("#foodPhoto").addEventListener("change", async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    try {
+      await recognizeFoodPhoto(file);
+    } catch {
+      $("#recognitionStatus").textContent = "照片辨識沒有成功，先用文字描述餐點再按辨識。";
+    } finally {
+      event.target.value = "";
+    }
   });
 
   $("#exerciseForm").addEventListener("submit", (event) => {

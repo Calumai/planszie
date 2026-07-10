@@ -9,7 +9,7 @@
     <title>AI 減脂陪跑助手</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="assets/app-icon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="styles.css?v=20260710c" />
   </head>
   <body>
     <div class="app-shell">
@@ -189,6 +189,43 @@
                 </div>
                 <label>餐別<select name="mealType"><option>第一餐</option><option>第二餐</option><option>晚餐</option><option>點心</option></select></label>
                 <label>食物內容<textarea name="foodName" rows="4" placeholder="例如：雞胸肉150g、白飯150g、青菜200g、乳清30g" required></textarea></label>
+                <section class="recognition-panel" aria-label="餐點辨識">
+                  <div class="recognition-actions">
+                    <label class="file-button camera-button">拍照辨識<input id="foodPhoto" type="file" accept="image/*" capture="environment" /></label>
+                    <button class="ghost-button" id="recognizeText" type="button">辨識文字</button>
+                  </div>
+                  <img id="photoPreview" class="photo-preview" alt="餐點照片預覽" hidden />
+                  <p class="connection-status" id="recognitionStatus">可拍餐點照片，或輸入文字後按辨識。</p>
+                </section>
+                <section class="calculator-card" aria-label="熱量計算機">
+                  <div class="calculator-display">
+                    <span>熱量 kcal</span>
+                    <strong id="calorieDisplay">0</strong>
+                  </div>
+                  <div class="calculator-grid">
+                    <button type="button" data-cal-key="7">7</button>
+                    <button type="button" data-cal-key="8">8</button>
+                    <button type="button" data-cal-key="9">9</button>
+                    <button type="button" data-cal-key="back">⌫</button>
+                    <button type="button" data-cal-key="4">4</button>
+                    <button type="button" data-cal-key="5">5</button>
+                    <button type="button" data-cal-key="6">6</button>
+                    <button type="button" data-cal-key="+">＋</button>
+                    <button type="button" data-cal-key="1">1</button>
+                    <button type="button" data-cal-key="2">2</button>
+                    <button type="button" data-cal-key="3">3</button>
+                    <button type="button" data-cal-key="clear">C</button>
+                    <button type="button" data-cal-key="0">0</button>
+                    <button type="button" data-cal-key="00">00</button>
+                    <button type="button" data-cal-key="estimate">估</button>
+                    <button type="button" data-cal-key="done">填入</button>
+                  </div>
+                  <div class="macro-chip-row">
+                    <button type="button" data-macro-preset="protein">蛋白質＋20g</button>
+                    <button type="button" data-macro-preset="carbs">碳水＋30g</button>
+                    <button type="button" data-macro-preset="fat">脂肪＋10g</button>
+                  </div>
+                </section>
                 <div class="form-grid">
                   <label>熱量 kcal<input name="calories" type="number" min="0" placeholder="空白會估算" /></label>
                   <label>蛋白質 g<input name="protein" type="number" min="0" step="0.1" placeholder="空白會估算" /></label>
@@ -396,7 +433,7 @@
       </main>
     </div>
 
-    <script src="history-data.js"></script>
-    <script src="app.js"></script>
+    <script src="history-data.js?v=20260710c"></script>
+    <script src="app.js?v=20260710c"></script>
   </body>
 </html>
