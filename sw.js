@@ -1,4 +1,4 @@
-const cacheName = "fat-loss-companion-v7";
+const cacheName = "fat-loss-companion-v11";
 const assets = [
   "./",
   "./index.html",
@@ -8,6 +8,7 @@ const assets = [
   "./gas-seed-data.js",
   "./manifest.webmanifest",
   "./assets/app-icon.svg",
+  "./assets/hero-comic-app.png",
   "./assets/meal-bowl.svg",
 ];
 

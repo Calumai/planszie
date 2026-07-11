@@ -3,13 +3,13 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#26735c" />
+    <meta name="theme-color" content="#e51f4f" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-title" content="減脂陪跑" />
     <title>AI 減脂陪跑助手</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="assets/app-icon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="styles.css?v=20260711d" />
+    <link rel="stylesheet" href="styles.css?v=20260711h" />
   </head>
   <body>
     <div class="app-shell">
@@ -20,7 +20,7 @@
           </div>
           <div>
             <p>AI 減脂陪跑</p>
-          <strong>106kg → 65kg 陪跑</strong>
+            <strong>英雄任務日誌</strong>
           </div>
         </div>
 
@@ -47,9 +47,9 @@
             width="164"
             height="128"
           />
-          <p>158 cm · 106 kg 起點</p>
-          <strong>目標：一年穩穩到 65 kg</strong>
-          <small>低衝擊有氧＋基礎重訓，飲食保留彈性。</small>
+          <p>手機優先 · 本機保存</p>
+          <strong>目標：每天都能回到軌道</strong>
+          <small>飲食、運動、體重與身體狀態集中記錄。</small>
         </div>
       </aside>
 
@@ -57,7 +57,7 @@
         <header class="topbar">
           <div>
             <p id="todayLabel">今天</p>
-            <h1>今天也不用完美，有記錄就有方向。</h1>
+            <h1>今天啟動英雄模式。</h1>
           </div>
           <div class="topbar-actions">
             <label for="dayType">今日狀態</label>
@@ -82,11 +82,63 @@
         </header>
 
         <section class="panel is-active" id="dashboard" aria-labelledby="dashboardTitle">
+          <section class="exact-comic-screen" aria-label="英雄模式首頁視覺">
+            <img src="assets/hero-comic-app.png" width="853" height="1844" fetchpriority="high" decoding="async" alt="今天啟動英雄模式，減脂記錄 App 首頁" />
+            <div class="comic-day-badge" aria-live="polite">
+              <span>第</span>
+              <strong id="comicDayNumber">54</strong>
+              <span>天</span>
+            </div>
+          </section>
+
+          <section class="mission-hero" aria-label="今日英雄任務">
+            <div class="mission-burst" aria-hidden="true">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+            <div class="mission-copy">
+              <span class="mission-pill" id="missionDayPill">第 54 天 · HERO MODE</span>
+              <h2>今天啟動英雄模式</h2>
+              <p>不用完美，只要出席。先記一餐、守住蛋白質，下一步就會變清楚。</p>
+              <div class="mission-actions">
+                <button class="primary-button jump-tab" data-target-tab="food" type="button">＋ 快速記一餐</button>
+                <button class="ghost-button jump-tab" data-target-tab="trends" type="button">看本週趨勢</button>
+              </div>
+            </div>
+            <figure class="mission-art">
+              <img src="assets/hero-comic-app.png" width="853" height="1844" loading="lazy" decoding="async" alt="英雄漫畫感減脂 App 視覺" />
+            </figure>
+          </section>
+
+          <nav class="hero-shortcuts" aria-label="快速記錄入口">
+            <button class="jump-tab" data-target-tab="food" type="button">
+              <span aria-hidden="true">早</span>
+              早餐
+            </button>
+            <button class="jump-tab" data-target-tab="food" type="button">
+              <span aria-hidden="true">拍</span>
+              拍照
+            </button>
+            <button class="jump-tab" data-target-tab="exercise" type="button">
+              <span aria-hidden="true">動</span>
+              運動
+            </button>
+            <button class="jump-tab" data-target-tab="trends" type="button">
+              <span aria-hidden="true">重</span>
+              體重
+            </button>
+            <button class="jump-tab" data-target-tab="trends" type="button">
+              <span aria-hidden="true">勢</span>
+              趨勢
+            </button>
+          </nav>
+
           <div class="dashboard-grid">
             <section class="summary-panel">
               <div class="section-heading">
-                <p>體重與今日狀態</p>
-                <h2 id="dashboardTitle">先看身體</h2>
+                <p>今日任務核心</p>
+                <h2 id="dashboardTitle">熱量能量槽</h2>
               </div>
               <div class="calorie-ring" aria-label="今日熱量進度">
                 <svg viewBox="0 0 180 180" role="img">
@@ -110,23 +162,23 @@
               </div>
               <div class="quick-actions">
                 <button class="primary-button jump-tab" data-target-tab="food" type="button">＋ 記一餐</button>
-                <button class="ghost-button jump-tab" data-target-tab="exercise" type="button">◷ 記運動</button>
+                <button class="ghost-button jump-tab" data-target-tab="exercise" type="button">記運動</button>
               </div>
             </section>
 
             <section class="coach-card is-pruned">
               <div class="section-heading">
-                <p>今日 AI 建議</p>
-                <h2>陪跑回饋</h2>
+                <p>英雄支援頻道</p>
+                <h2>AI 陪跑回饋</h2>
               </div>
               <p id="dailyAdvice">
                 先記錄第一餐，我會幫你抓熱量、蛋白質和晚餐方向。
               </p>
             </section>
 
-            <section class="macro-panel is-pruned">
+            <section class="macro-panel">
               <div class="section-heading">
-                <p>營養目標</p>
+                <p>能力值</p>
                 <h2>宏量進度</h2>
               </div>
               <div class="progress-list">
@@ -145,7 +197,7 @@
               </div>
             </section>
 
-            <section class="phase-panel is-pruned">
+            <section class="phase-panel">
               <div class="section-heading">
                 <p>今日階段提醒</p>
                 <h2 id="stageName">紀律 Discipline</h2>
@@ -157,7 +209,7 @@
               </div>
             </section>
 
-            <section class="habit-panel is-pruned">
+            <section class="habit-panel">
               <div class="section-heading">
                 <p>Adherence</p>
                 <h2>今日習慣分數</h2>
@@ -225,7 +277,7 @@
               </form>
             </section>
 
-            <section class="history-panel is-pruned">
+            <section class="history-panel">
               <div class="section-heading">
                 <p>匯入紀錄</p>
                 <h2>歷史趨勢</h2>
@@ -244,7 +296,7 @@
               <p class="connection-status">來自你提供的 Excel 對話整理，屬估算紀錄。</p>
             </section>
 
-            <section class="workout-panel is-pruned">
+            <section class="workout-panel">
               <div class="section-heading">
                 <p>健身房菜單</p>
                 <h2>低衝擊重訓</h2>
@@ -736,8 +788,8 @@
       </main>
     </div>
 
-    <script src="history-data.js?v=20260711d"></script>
-    <script src="gas-seed-data.js?v=20260711d"></script>
-    <script src="app.js?v=20260711d"></script>
+    <script src="history-data.js?v=20260711h"></script>
+    <script src="gas-seed-data.js?v=20260711h"></script>
+    <script src="app.js?v=20260711h"></script>
   </body>
 </html>
