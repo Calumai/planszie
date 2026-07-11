@@ -1,10 +1,10 @@
-const cacheName = "fat-loss-companion-v12";
+const cacheName = "fat-loss-companion-v5";
 const assets = [
   "./",
   "./index.html",
   "./styles.css",
-  "./history-data.js",
   "./app.js",
+  "./history-data.js",
   "./manifest.webmanifest",
   "./assets/app-icon.svg",
   "./assets/meal-bowl.svg",

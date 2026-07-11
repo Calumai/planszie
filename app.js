@@ -1,19 +1,9 @@
-function formatLocalDate(date = new Date()) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
-
-const todayKey = formatLocalDate();
-let activeDateKey = todayKey;
-let storageKey = `fatLossCompanion:${activeDateKey}`;
+const todayKey = new Date().toISOString().slice(0, 10);
+const storageKey = `fatLossCompanion:${todayKey}`;
 const weightKey = "fatLossCompanion:weights";
 const aiSettingsKey = "fatLossCompanion:aiSettings";
 const gasSettingsKey = "fatLossCompanion:gasSettings";
-const defaultGasUrl =
-  "https://script.google.com/macros/s/AKfycbzbYDTgjK4oL0KYJ9X_mvfym59Sc35HE8FgH_67QTjAazDIDbmscql4yO_ee5resG08/exec";
-const defaultOpenRouterModel = "openai/gpt-4.1-mini";
+const historyRecords = Array.isArray(window.fatLossHistory) ? window.fatLossHistory : [];
 
 const defaultState = {
   dayType: "normal",
@@ -86,28 +76,44 @@ const stages = {
 
 const rickyMealTemplate = [
   {
-    mealType: "第一餐",
-    foodName: "黑胡椒雞胸180g、白飯180g、青菜250g",
-    calories: 590,
-    protein: 60,
-    carbs: 63,
-    fat: 9,
+    mealType: "早餐",
+    foodName: "水煮蛋1顆、無糖優格150g、燕麥20g、奇亞籽5g、芭樂100g",
+    calories: 360,
+    protein: 24,
+    carbs: 42,
+    fat: 11,
   },
   {
-    mealType: "第二餐",
-    foodName: "鮭魚120g、地瓜180g、青菜250g",
-    calories: 520,
-    protein: 34,
-    carbs: 49,
-    fat: 17,
+    mealType: "午餐",
+    foodName: "黑胡椒雞胸健康餐盒，飯半份或飯換菜，海藻/蔬菜沙拉",
+    calories: 470,
+    protein: 42,
+    carbs: 45,
+    fat: 13,
+  },
+  {
+    mealType: "點心",
+    foodName: "運動前：乳清20g、冷藏蒸芋頭或地瓜100-150g",
+    calories: 240,
+    protein: 18,
+    carbs: 38,
+    fat: 2,
+  },
+  {
+    mealType: "點心",
+    foodName: "運動後：乳清25g、冷藏蒸地瓜150g",
+    calories: 270,
+    protein: 23,
+    carbs: 42,
+    fat: 2,
   },
   {
     mealType: "晚餐",
-    foodName: "舒肥雞胸150g、白飯120g、青菜250g、醬料少",
-    calories: 480,
-    protein: 50,
-    carbs: 48,
-    fat: 8,
+    foodName: "椒鹽/舒肥雞胸健康餐盒，半飯，加菜，醬料少",
+    calories: 430,
+    protein: 40,
+    carbs: 38,
+    fat: 12,
   },
 ];
 
@@ -239,10 +245,19 @@ function saveState() {
 
 function loadWeights() {
   try {
-    return JSON.parse(localStorage.getItem(weightKey)) || [{ date: todayKey, weight: 99 }];
+    const saved = JSON.parse(localStorage.getItem(weightKey));
+    if (saved?.length) {
+      return saved;
+    }
   } catch {
-    return [{ date: todayKey, weight: 99 }];
+    // Fall through to imported history.
   }
+
+  const importedWeights = historyRecords
+    .filter((item) => Number(item.weight) > 0)
+    .map((item) => ({ date: item.date, weight: Number(item.weight) }));
+
+  return importedWeights.length ? importedWeights : [{ date: todayKey, weight: 93.1 }];
 }
 
 function saveWeights() {
@@ -255,8 +270,8 @@ function saveTodayWeight(weight) {
     return;
   }
 
-  const existingIndex = weights.findIndex((item) => item.date === activeDateKey);
-  const entry = { date: activeDateKey, weight: Number(weight) };
+  const existingIndex = weights.findIndex((item) => item.date === todayKey);
+  const entry = { date: todayKey, weight: Number(weight) };
 
   if (existingIndex >= 0) {
     weights[existingIndex] = entry;
@@ -267,48 +282,15 @@ function saveTodayWeight(weight) {
   saveWeights();
 }
 
-function getSavedDayEntries() {
-  const entries = [];
-  for (let index = 0; index < localStorage.length; index += 1) {
-    const key = localStorage.key(index);
-    const match = key?.match(/^fatLossCompanion:(\d{4}-\d{2}-\d{2})$/);
-    if (!match) {
-      continue;
-    }
-
-    try {
-      const saved = JSON.parse(localStorage.getItem(key));
-      entries.push({
-        date: match[1],
-        foods: saved?.foods?.length || 0,
-        exercises: saved?.exercises?.length || 0,
-        weight: saved?.body?.weight || "",
-        calories: (saved?.foods || []).reduce((total, food) => total + Number(food.calories || 0), 0),
-      });
-    } catch {
-      entries.push({ date: match[1], foods: 0, exercises: 0, weight: "", calories: 0 });
-    }
-  }
-
-  return entries.sort((a, b) => b.date.localeCompare(a.date));
-}
-
-function loadDay(date) {
-  activeDateKey = date;
-  storageKey = `fatLossCompanion:${activeDateKey}`;
-  state = loadState();
-  render();
-}
-
 function loadAiSettings() {
   try {
     return {
       apiKey: "",
-      model: defaultOpenRouterModel,
+      model: "gpt-4.1-mini",
       ...JSON.parse(localStorage.getItem(aiSettingsKey)),
     };
   } catch {
-    return { apiKey: "", model: defaultOpenRouterModel };
+    return { apiKey: "", model: "gpt-4.1-mini" };
   }
 }
 
@@ -318,10 +300,9 @@ function saveAiSettings() {
 
 function loadGasSettings() {
   try {
-    const saved = JSON.parse(localStorage.getItem(gasSettingsKey));
-    return { gasUrl: saved?.gasUrl || defaultGasUrl };
+    return { gasUrl: "", ...JSON.parse(localStorage.getItem(gasSettingsKey)) };
   } catch {
-    return { gasUrl: defaultGasUrl };
+    return { gasUrl: "" };
   }
 }
 
@@ -343,7 +324,7 @@ function getAllAppStorage() {
 function getCloudPayload() {
   const totals = getTotals();
   return {
-    date: activeDateKey,
+    date: todayKey,
     weight: state.body.weight || "",
     water: state.habits.water ? 1 : 0,
     fastStart: "",
@@ -463,7 +444,7 @@ function exportAllData() {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `減脂陪跑備份-${activeDateKey}.json`;
+  link.download = `減脂陪跑備份-${todayKey}.json`;
   link.click();
   URL.revokeObjectURL(url);
 }
@@ -547,115 +528,6 @@ function estimateFood(text) {
   );
 }
 
-const foodNutritionPer100g = [
-  { names: ["雞胸", "雞肉", "chicken breast"], calories: 165, protein: 31, carbs: 0, fat: 3.6 },
-  { names: ["雞腿", "去皮雞腿"], calories: 190, protein: 25, carbs: 0, fat: 9 },
-  { names: ["鮭魚"], calories: 208, protein: 20, carbs: 0, fat: 13 },
-  { names: ["鮪魚", "鮪魚罐"], calories: 130, protein: 26, carbs: 0, fat: 3 },
-  { names: ["鯖魚"], calories: 205, protein: 19, carbs: 0, fat: 14 },
-  { names: ["蝦"], calories: 99, protein: 24, carbs: 0, fat: 0.3 },
-  { names: ["蛋", "水煮蛋", "茶葉蛋"], calories: 155, protein: 13, carbs: 1.1, fat: 11 },
-  { names: ["豆腐"], calories: 76, protein: 8, carbs: 2, fat: 4.8 },
-  { names: ["豆漿"], calories: 45, protein: 3.6, carbs: 3, fat: 2 },
-  { names: ["牛肉"], calories: 250, protein: 26, carbs: 0, fat: 15 },
-  { names: ["豬肉"], calories: 242, protein: 27, carbs: 0, fat: 14 },
-  { names: ["乳清", "高蛋白", "protein"], calories: 400, protein: 76, carbs: 10, fat: 6 },
-  { names: ["白飯", "米飯"], calories: 130, protein: 2.7, carbs: 28, fat: 0.3 },
-  { names: ["飯"], calories: 130, protein: 2.7, carbs: 28, fat: 0.3 },
-  { names: ["糙米", "糙米飯"], calories: 123, protein: 2.7, carbs: 25.6, fat: 1 },
-  { names: ["燕麥"], calories: 389, protein: 16.9, carbs: 66, fat: 6.9 },
-  { names: ["地瓜", "番薯"], calories: 86, protein: 1.6, carbs: 20, fat: 0.1 },
-  { names: ["芋頭"], calories: 112, protein: 1.5, carbs: 26, fat: 0.2 },
-  { names: ["馬鈴薯"], calories: 77, protein: 2, carbs: 17, fat: 0.1 },
-  { names: ["麵", "麵條"], calories: 138, protein: 4.5, carbs: 25, fat: 2.1 },
-  { names: ["吐司"], calories: 265, protein: 9, carbs: 49, fat: 3.2 },
-  { names: ["優格", "無糖優格"], calories: 63, protein: 5.3, carbs: 7, fat: 1.6 },
-  { names: ["牛奶"], calories: 61, protein: 3.2, carbs: 4.8, fat: 3.3 },
-  { names: ["青菜", "蔬菜", "花椰菜", "高麗菜"], calories: 30, protein: 2, carbs: 5, fat: 0.3 },
-  { names: ["沙拉"], calories: 45, protein: 2, carbs: 7, fat: 1 },
-  { names: ["香蕉"], calories: 89, protein: 1.1, carbs: 23, fat: 0.3 },
-  { names: ["蘋果"], calories: 52, protein: 0.3, carbs: 14, fat: 0.2 },
-  { names: ["芭樂"], calories: 68, protein: 2.6, carbs: 14, fat: 1 },
-  { names: ["西瓜"], calories: 30, protein: 0.6, carbs: 8, fat: 0.2 },
-  { names: ["蛋糕"], calories: 330, protein: 5, carbs: 42, fat: 17 },
-  { names: ["便當", "健康餐"], calories: 150, protein: 10, carbs: 14, fat: 5 },
-];
-
-function findFoodNutrition(name) {
-  const lowerName = name.toLowerCase();
-  return foodNutritionPer100g.find((food) =>
-    food.names.some((alias) => lowerName.includes(alias.toLowerCase())),
-  );
-}
-
-function parseFoodSegments(text) {
-  const measuredSegments = text.match(/[^,，、＋+；;\n]*?\d+(?:\.\d+)?\s*(?:g|克|公克|份|碗|顆|個|片|杯|包|匙)/gi);
-  if (measuredSegments?.length > 1) {
-    return measuredSegments.map((segment) => segment.trim()).filter(Boolean);
-  }
-
-  return text
-    .split(/[\n,，、＋+；;]/)
-    .map((segment) => segment.trim())
-    .filter(Boolean);
-}
-
-function extractGramAmount(segment) {
-  const gramMatch = segment.match(/(\d+(?:\.\d+)?)\s*(?:g|克|公克)/i);
-  if (gramMatch) {
-    return Number(gramMatch[1]);
-  }
-
-  const servingMatch = segment.match(/(\d+(?:\.\d+)?)\s*(?:份|碗|顆|個|片|杯|包|匙)/);
-  if (!servingMatch) {
-    return null;
-  }
-
-  const amount = Number(servingMatch[1]);
-  if (/飯|米飯/.test(segment)) return amount * 150;
-  if (/蛋|水煮蛋|茶葉蛋/.test(segment)) return amount * 55;
-  if (/吐司/.test(segment)) return amount * 30;
-  if (/香蕉/.test(segment)) return amount * 120;
-  if (/蘋果|芭樂/.test(segment)) return amount * 150;
-  if (/乳清|高蛋白/.test(segment)) return amount * 30;
-  if (/牛奶|豆漿/.test(segment)) return amount * 240;
-  return amount * 100;
-}
-
-function estimateFood(text) {
-  const estimated = parseFoodSegments(text).reduce(
-    (total, segment) => {
-      const nutrition = findFoodNutrition(segment);
-      if (!nutrition) {
-        total.unknownCount += 1;
-        return total;
-      }
-
-      const grams = extractGramAmount(segment) || 100;
-      const ratio = grams / 100;
-      total.calories += nutrition.calories * ratio;
-      total.protein += nutrition.protein * ratio;
-      total.carbs += nutrition.carbs * ratio;
-      total.fat += nutrition.fat * ratio;
-      total.matchedCount += 1;
-      return total;
-    },
-    { calories: 0, protein: 0, carbs: 0, fat: 0, unknownCount: 0, matchedCount: 0 },
-  );
-
-  if (!estimated.matchedCount) {
-    return { calories: 420, protein: 22, carbs: 45, fat: 14, confidence: "low" };
-  }
-
-  return {
-    calories: Math.round(estimated.calories + estimated.unknownCount * 120),
-    protein: Math.round(estimated.protein * 10) / 10,
-    carbs: Math.round(estimated.carbs * 10) / 10,
-    fat: Math.round(estimated.fat * 10) / 10,
-    confidence: estimated.unknownCount ? "medium" : "high",
-  };
-}
-
 function updateCalorieDisplay(value = calorieDraft) {
   const display = $("#calorieDisplay");
   if (!display) {
@@ -681,7 +553,7 @@ function calculateDraftValue() {
 function fillCaloriesFromDraft() {
   const form = $("#foodForm");
   const calories = calculateDraftValue();
-  if (!form || !calories) {
+  if (!calories) {
     return;
   }
 
@@ -707,7 +579,7 @@ function applyEstimateToFoodForm() {
   shouldReplaceCalorieDraft = true;
   updateCalorieDisplay();
   $("#foodEstimate").textContent = `辨識後先估 ${formatNumber(estimate.calories)} kcal，蛋白質 ${formatNumber(estimate.protein)}g、碳水 ${formatNumber(estimate.carbs)}g、脂肪 ${formatNumber(estimate.fat)}g。`;
-  $("#recognitionStatus").textContent = estimate.confidence === "high" ? "已依克數填入估算，可再手動微調。" : "已填入保守估算，建議送出前再修一下份量。";
+  $("#recognitionStatus").textContent = "已用本機食材規則填入估算，可再手動微調。";
 }
 
 function addMacroPreset(kind) {
@@ -719,7 +591,7 @@ function addMacroPreset(kind) {
   };
   const preset = presets[kind];
 
-  if (!form || !preset) {
+  if (!preset) {
     return;
   }
 
@@ -750,41 +622,20 @@ function parseNutritionJson(text) {
   };
 }
 
-async function askVisionForFood(dataUrl) {
-  const prompt =
-    "請辨識照片中的餐點並估算營養。只回傳 JSON，不要 Markdown。格式：{\"foodName\":\"餐點描述\",\"calories\":數字,\"protein\":數字,\"carbs\":數字,\"fat\":數字}。無法判斷時也請給保守估算。";
+async function recognizeFoodPhoto(file) {
+  const status = $("#recognitionStatus");
+  const preview = $("#photoPreview");
+  const dataUrl = await fileToDataUrl(file);
 
-  if (aiSettings.apiKey?.startsWith("sk-or-")) {
-    const model = aiSettings.model?.includes("/") ? aiSettings.model : `openai/${aiSettings.model || "gpt-4.1-mini"}`;
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${aiSettings.apiKey}`,
-        "HTTP-Referer": location.href,
-        "X-Title": "AI Fat Loss Companion",
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          {
-            role: "user",
-            content: [
-              { type: "text", text: prompt },
-              { type: "image_url", image_url: { url: dataUrl } },
-            ],
-          },
-        ],
-      }),
-    });
+  preview.src = dataUrl;
+  preview.hidden = false;
 
-    if (!response.ok) {
-      throw new Error("OpenRouter photo recognition failed");
-    }
-
-    const result = await response.json();
-    return result.choices?.[0]?.message?.content || "";
+  if (!aiSettings.apiKey) {
+    status.textContent = "照片已放上來。若要自動辨識照片，請先在 AI 教練頁儲存 OpenAI API Key；現在可先用文字描述後按辨識。";
+    return;
   }
+
+  status.textContent = "正在辨識照片中的餐點...";
 
   const response = await fetch("https://api.openai.com/v1/responses", {
     method: "POST",
@@ -798,7 +649,11 @@ async function askVisionForFood(dataUrl) {
         {
           role: "user",
           content: [
-            { type: "input_text", text: prompt },
+            {
+              type: "input_text",
+              text:
+                "請辨識照片中的餐點並估算營養。只回傳 JSON，不要 Markdown。格式：{\"foodName\":\"餐點描述\",\"calories\":數字,\"protein\":數字,\"carbs\":數字,\"fat\":數字}。無法判斷時也請給保守估算。",
+            },
             { type: "input_image", image_url: dataUrl },
           ],
         },
@@ -807,36 +662,19 @@ async function askVisionForFood(dataUrl) {
   });
 
   if (!response.ok) {
-    throw new Error("OpenAI photo recognition failed");
+    throw new Error("photo recognition failed");
   }
 
   const result = await response.json();
-  return (
+  const outputText =
     result.output_text ||
     result.output
       ?.flatMap((item) => item.content || [])
       ?.map((content) => content.text)
       ?.filter(Boolean)
       ?.join("\n") ||
-    ""
-  );
-}
-
-async function recognizeFoodPhoto(file) {
-  const status = $("#recognitionStatus");
-  const preview = $("#photoPreview");
-  const dataUrl = await fileToDataUrl(file);
-
-  preview.src = dataUrl;
-  preview.hidden = false;
-
-  if (!aiSettings.apiKey) {
-    status.textContent = "照片已放上來。若要自動辨識照片，請先在 AI 教練頁儲存 OpenRouter 或 OpenAI API Key；現在可先用文字描述後按辨識。";
-    return;
-  }
-
-  status.textContent = "正在辨識照片中的餐點...";
-  const estimate = parseNutritionJson(await askVisionForFood(dataUrl));
+    "";
+  const estimate = parseNutritionJson(outputText);
   const form = $("#foodForm");
 
   if (estimate.foodName) {
@@ -967,19 +805,6 @@ function buildCoachPrompt(question) {
   const totals = getTotals();
   const target = activeTarget();
   const remaining = target.calories - totals.calories + totals.exercise;
-  const history = window.fatLossHistory;
-  const historySummary = history
-    ? [
-        `歷史起點：${history.startWeight}kg，PDF 紀錄最低/近期：${history.currentHistoricalWeight}kg，目標：${history.goalWeight}kg`,
-        `歷史體重：${history.entries
-          .filter((entry) => entry.weight)
-          .map((entry) => `${entry.label} ${entry.weight}kg`)
-          .join("；")}`,
-        `AI教練原則：${history.coachKnowledge
-          .map((item) => `${item.title}：${item.body}`)
-          .join("；")}`,
-      ].join("\n")
-    : "尚未載入歷史資料。";
 
   return `
 使用者設定：
@@ -1014,9 +839,6 @@ function buildCoachPrompt(question) {
 - 運動紀錄：${state.exercises.map((exercise) => `${exercise.exerciseType} ${exercise.duration}分鐘 ${exercise.caloriesBurned}kcal 膝蓋:${exercise.kneeStatus || "未填"} 小腿:${exercise.calfSoreness || "未填"} ${exercise.note || ""}`).join("；") || "尚無"}
 - 今日最低標準：${stages[state.stage]?.minimum || stages.discipline.minimum}
 
-PDF 歷史紀錄與教練知識庫：
-${historySummary}
-
 使用者問題：${question}
 
 請用繁體中文回答。語氣像朋友陪跑，但要專業。不要羞辱，不要恐嚇，不要極端節食，不要把食物絕對禁止。當她狀態差時啟動最低標準模式；當她失誤時提醒下一餐回正軌即可。請算數字、做判斷、給下一步。回覆控制在 180 字內。
@@ -1031,7 +853,7 @@ async function askOpenAICoach(question) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: aiSettings.model || defaultOpenRouterModel,
+        model: aiSettings.model || "gpt-4.1-mini",
         prompt: buildCoachPrompt(question),
       }),
     });
@@ -1044,47 +866,6 @@ async function askOpenAICoach(question) {
 
   if (!aiSettings.apiKey) {
     return null;
-  }
-
-  if (aiSettings.apiKey.startsWith("sk-or-")) {
-    const model = aiSettings.model?.includes("/") ? aiSettings.model : `openai/${aiSettings.model || "gpt-4.1-mini"}`;
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${aiSettings.apiKey}`,
-        "HTTP-Referer": location.href,
-        "X-Title": "AI Fat Loss Companion",
-      },
-      body: JSON.stringify({
-        model,
-        max_tokens: 450,
-        messages: [
-          {
-            role: "system",
-            content:
-              "你是減脂陪跑 AI 教練。以長期可持續執行為核心，回答要專業、溫和、務實，不羞辱、不恐嚇、不鼓勵極端節食。",
-          },
-          {
-            role: "user",
-            content: buildCoachPrompt(question),
-          },
-        ],
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      let message = errorText || `OpenRouter request failed: ${response.status}`;
-      try {
-        const parsed = JSON.parse(errorText);
-        message = parsed.error?.message || parsed.message || message;
-      } catch {}
-      throw new Error(message);
-    }
-
-    const data = await response.json();
-    return data.choices?.[0]?.message?.content || null;
   }
 
   const response = await fetch("https://api.openai.com/v1/responses", {
@@ -1142,11 +923,10 @@ async function answerCoachQuestion(question, button) {
   try {
     const reply = await askOpenAICoach(question);
     waitingMessage.textContent = reply || coachReply(question);
-    $("#aiStatus").textContent = aiSettings.apiKey?.startsWith("sk-or-") ? "已使用 OpenRouter 回覆" : "已使用 OpenAI 回覆";
-  } catch (error) {
-    const provider = aiSettings.apiKey?.startsWith("sk-or-") ? "OpenRouter" : "OpenAI";
-    waitingMessage.textContent = `${coachReply(question)}\n\n${provider} 連線沒有成功，先用本機回覆陪你。錯誤：${error.message.slice(0, 180)}`;
-    $("#aiStatus").textContent = `${provider} 連線失敗，已切回本機回覆`;
+    $("#aiStatus").textContent = "已使用 OpenAI 回覆";
+  } catch {
+    waitingMessage.textContent = `${coachReply(question)}\n\nOpenAI 連線沒有成功，先用本機回覆陪你。`;
+    $("#aiStatus").textContent = "OpenAI 連線失敗，已切回本機回覆";
   } finally {
     if (button) {
       button.disabled = false;
@@ -1166,7 +946,7 @@ function render() {
     month: "long",
     day: "numeric",
     weekday: "long",
-  }).format(new Date(`${activeDateKey}T12:00:00`));
+  }).format(new Date());
 
   $("#dayType").value = state.dayType;
   $("#stageSelect").value = state.stage;
@@ -1207,26 +987,20 @@ function render() {
   });
   $("#proteinRate").textContent = `${Math.min(Math.round((totals.protein / proteinTarget) * 100), 100)}%`;
   $("#exerciseCount").textContent = state.exercises.length;
-  $("#aiSettingsForm").elements.model.value = aiSettings.model || defaultOpenRouterModel;
+  $("#aiSettingsForm").elements.model.value = aiSettings.model || "gpt-4.1-mini";
   $("#aiSettingsForm").elements.apiKey.value = aiSettings.apiKey || "";
-  $("#aiStatus").textContent = aiSettings.apiKey
-    ? aiSettings.apiKey.startsWith("sk-or-")
-      ? "已儲存 OpenRouter key，送出問題會嘗試 OpenRouter"
-      : "已儲存 OpenAI key，送出問題會嘗試 OpenAI"
-    : "目前使用本機陪跑回覆";
+  $("#aiStatus").textContent = aiSettings.apiKey ? "已儲存 API key，送出問題會嘗試 OpenAI" : "目前使用本機陪跑回覆";
   $("#gasSettingsForm").elements.gasUrl.value = gasSettings.gasUrl || "";
   $("#gasCodeBlock").textContent = gasCode;
   setGasStatus(
     gasSettings.gasUrl
-      ? "GAS 已內建並連接。記錄更新時會自動背景推送，也可以手動推送/讀取。"
+      ? "GAS 已連接。記錄更新時會自動背景推送，也可以手動推送/讀取。"
       : "未連接 GAS。貼上 Web App URL 後，手機資料可以同步到 Google Sheets。",
   );
 
   renderRecords();
   renderSummary();
-  renderSavedDayRecords();
   renderWeightChart();
-  renderHistoryData();
   renderGrowth();
 }
 
@@ -1261,28 +1035,6 @@ function renderRecords() {
         )
         .join("")
     : '<div class="empty-state">今天還沒有運動紀錄。</div>';
-}
-
-function renderSavedDayRecords() {
-  const historyContainer = $("#savedDayRecords");
-  if (!historyContainer) {
-    return;
-  }
-
-  const entries = getSavedDayEntries();
-  historyContainer.innerHTML = entries.length
-    ? entries
-        .map(
-          (entry) => `
-            <button class="day-record-button ${entry.date === activeDateKey ? "is-active" : ""}" type="button" data-date="${entry.date}">
-              <span>${entry.date === todayKey ? "今天" : entry.date}</span>
-              <strong>${formatNumber(entry.calories)} kcal</strong>
-              <small>${entry.foods} 餐 / ${entry.exercises} 運動${entry.weight ? ` / ${entry.weight}kg` : ""}</small>
-            </button>
-          `,
-        )
-        .join("")
-    : '<div class="empty-state">目前還沒有歷史日紀錄。</div>';
 }
 
 function renderSummary() {
@@ -1352,77 +1104,33 @@ function renderWeightChart() {
     .join("");
 }
 
-function renderHistoryData() {
-  const history = window.fatLossHistory;
-  const stats = $("#historyStats");
-  const chart = $("#historyWeightChart");
-  const list = $("#historyList");
-  const knowledge = $("#coachKnowledgeList");
+function renderHistorySummary() {
+  const recordsWithCalories = historyRecords.filter((item) => Number(item.calories) > 0);
+  const recordsWithWeight = historyRecords.filter((item) => Number(item.weight) > 0);
+  const latestWeight = recordsWithWeight.at(-1);
+  const averageCalories =
+    recordsWithCalories.reduce((total, item) => total + Number(item.calories), 0) /
+    Math.max(recordsWithCalories.length, 1);
 
-  if (!stats || !chart || !list || !knowledge) {
+  const latestNode = $("#historyLatestWeight");
+  const averageNode = $("#historyAverageCalories");
+  const chart = $("#historyChart");
+
+  if (!latestNode || !averageNode || !chart) {
     return;
   }
 
-  if (!history?.entries?.length) {
-    stats.innerHTML = '<div class="empty-state">尚未載入 PDF 歷史資料。</div>';
-    chart.innerHTML = "";
-    list.innerHTML = "";
-    knowledge.innerHTML = "";
-    return;
-  }
+  latestNode.textContent = latestWeight ? `${latestWeight.weight} kg` : "-- kg";
+  averageNode.textContent = recordsWithCalories.length ? `${formatNumber(averageCalories)} kcal` : "-- kcal";
 
-  const weightedEntries = history.entries.filter((entry) => Number(entry.weight));
-  const firstWeight = weightedEntries[0]?.weight || history.startWeight;
-  const latestWeight = [...weightedEntries].reverse()[0]?.weight || history.currentHistoricalWeight;
-  const lost = firstWeight - latestWeight;
-  const totalGoal = firstWeight - history.goalWeight;
-  const progress = totalGoal > 0 ? Math.max(0, Math.min((lost / totalGoal) * 100, 100)) : 0;
-
-  stats.innerHTML = `
-    <article><span>歷史起點</span><strong>${firstWeight.toFixed(1)} kg</strong></article>
-    <article><span>PDF 最新</span><strong>${latestWeight.toFixed(1)} kg</strong></article>
-    <article><span>已下降</span><strong>${lost.toFixed(1)} kg</strong></article>
-    <article><span>70kg 進度</span><strong>${Math.round(progress)}%</strong></article>
-  `;
-
-  const max = Math.max(...weightedEntries.map((entry) => entry.weight));
-  const min = Math.min(...weightedEntries.map((entry) => entry.weight));
-  const range = Math.max(max - min, 0.8);
-  chart.innerHTML = weightedEntries
-    .map((entry) => {
-      const height = 38 + ((max - entry.weight) / range) * 150;
-      return `
-        <div class="history-point" style="height:${height}px" title="${entry.label} ${entry.weight}kg">
-          <strong>${entry.weight.toFixed(1)}</strong>
-          <span>${entry.label.replace("Day", "D")}</span>
-        </div>
-      `;
+  const recent = recordsWithCalories.slice(-10);
+  const max = Math.max(...recent.map((item) => item.calories), 1800);
+  chart.innerHTML = recent
+    .map((item) => {
+      const height = Math.max(20, (Number(item.calories) / max) * 112);
+      const label = `${item.date.slice(5)} · ${item.calories}kcal`;
+      return `<span title="${escapeHtml(label)}" style="height:${height}px"><small>${escapeHtml(item.date.slice(5))}</small></span>`;
     })
-    .join("");
-
-  list.innerHTML = history.entries
-    .map(
-      (entry) => `
-        <article class="history-entry">
-          <div>
-            <strong>${entry.label}</strong>
-            <span>${entry.weight ? `${entry.weight.toFixed(1)} kg` : "歷史事件"}</span>
-          </div>
-          <p>${escapeHtml(entry.summary)}</p>
-        </article>
-      `,
-    )
-    .join("");
-
-  knowledge.innerHTML = history.coachKnowledge
-    .map(
-      (item) => `
-        <article class="knowledge-entry">
-          <strong>${escapeHtml(item.title)}</strong>
-          <p>${escapeHtml(item.body)}</p>
-        </article>
-      `,
-    )
     .join("");
 }
 
@@ -1445,12 +1153,11 @@ function setupEvents() {
     });
   });
 
-  $("#savedDayRecords")?.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-date]");
-    if (!button) {
-      return;
-    }
-    loadDay(button.dataset.date);
+  $$(".jump-tab").forEach((button) => {
+    button.addEventListener("click", () => {
+      const target = $(`.tab-button[data-tab="${button.dataset.targetTab}"]`);
+      target?.click();
+    });
   });
 
   $("#dayType").addEventListener("change", (event) => {
@@ -1517,13 +1224,7 @@ function setupEvents() {
 
     state.foods.push(food);
     saveState();
-    const estimateNote =
-      estimate.confidence === "high"
-        ? "已依你輸入的克數估算。"
-        : estimate.confidence === "medium"
-          ? "有部分食物未完全辨識，已用保守值補上。"
-          : "食物名稱不夠明確，先用一般外食保守估算。";
-    $("#foodEstimate").textContent = `這餐估 ${formatNumber(food.calories)} kcal，蛋白質 ${formatNumber(food.protein)}g、碳水 ${formatNumber(food.carbs)}g、脂肪 ${formatNumber(food.fat)}g。${estimateNote}`;
+    $("#foodEstimate").textContent = `這餐先估 ${formatNumber(food.calories)} kcal，蛋白質 ${formatNumber(food.protein)}g、碳水 ${formatNumber(food.carbs)}g、脂肪 ${formatNumber(food.fat)}g。你可以在送出前手動修正數字。`;
     event.currentTarget.reset();
     calorieDraft = "";
     shouldReplaceCalorieDraft = false;
@@ -1628,19 +1329,16 @@ function setupEvents() {
     const data = new FormData(event.currentTarget);
     aiSettings = {
       apiKey: data.get("apiKey").trim(),
-      model: data.get("model").trim() || defaultOpenRouterModel,
+      model: data.get("model").trim() || "gpt-4.1-mini",
     };
     saveAiSettings();
-    $("#aiStatus").textContent = aiSettings.apiKey?.startsWith("sk-or-")
-      ? "OpenRouter 設定已儲存"
-      : aiSettings.apiKey
-        ? "OpenAI 設定已儲存"
-        : "目前使用本機陪跑回覆";
+    $("#aiStatus").textContent = aiSettings.apiKey ? "設定已儲存" : "目前使用本機陪跑回覆";
   });
 
   $("#gasSettingsForm").addEventListener("submit", (event) => {
     event.preventDefault();
-    const gasUrl = defaultGasUrl;
+    const data = new FormData(event.currentTarget);
+    const gasUrl = data.get("gasUrl").trim();
 
     if (gasUrl && !gasUrl.startsWith("https://script.google.com/")) {
       setGasStatus("GAS URL 格式不對，應該是 https://script.google.com/macros/s/.../exec");
@@ -1649,9 +1347,10 @@ function setupEvents() {
 
     gasSettings = { gasUrl };
     saveGasSettings();
-    event.currentTarget.elements.gasUrl.value = gasUrl;
-    setGasStatus("固定 GAS 已重新套用，正在推送目前資料...");
-    pushToGas().catch(() => setGasStatus("GAS 推送失敗，請確認部署權限是 Anyone。"));
+    setGasStatus(gasUrl ? "GAS 連結已儲存，正在推送目前資料..." : "已清除 GAS 連結。");
+    if (gasUrl) {
+      pushToGas().catch(() => setGasStatus("GAS 推送失敗，請確認部署權限是 Anyone。"));
+    }
   });
 
   $("#pushGas").addEventListener("click", () => {
@@ -1683,10 +1382,6 @@ function setupEvents() {
   });
 
   $("#clearToday").addEventListener("click", () => {
-    const confirmed = window.confirm("確定要清空今天的飲食、運動、習慣與身體紀錄嗎？這個動作不會刪除歷史體重。");
-    if (!confirmed) {
-      return;
-    }
     state = { ...defaultState };
     saveState();
     render();
@@ -1737,7 +1432,7 @@ function setupInstallSupport() {
   });
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("sw.js?v=20260710g").then((registration) => registration.update()).catch(() => {});
+    navigator.serviceWorker.register("sw.js").catch(() => {});
   }
 }
 
@@ -1745,3 +1440,4 @@ setupInstallSupport();
 setupEvents();
 addChatMessage("嗨，我會用份量和平衡來陪你，不會把食物貼上禁止標籤。今天想先問晚餐，還是先記一餐？");
 render();
+renderHistorySummary();

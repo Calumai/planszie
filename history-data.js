@@ -1,202 +1,383 @@
-window.fatLossHistory = {
-  "generatedFrom": [
-    "減脂歷史紀錄（Part 1）.pdf",
-    "減脂歷史紀錄（Part 2）.pdf",
-    "減脂歷史紀錄（Part 3：AI教練知識庫）.pdf"
-  ],
-  "startWeight": 99.6,
-  "currentHistoricalWeight": 97.8,
-  "goalWeight": 70,
-  "entries": [
-    {
-      "day": 1,
-      "label": "Day001",
-      "weight": 99.6,
-      "summary": "體重 目標 起始減脂計畫開始 目標體重 70kg 採用兩餐制 搭配重訓與有氧 今日策略 午餐與晚餐為主 不強制早餐 每日熱量控制約 1500~1800 kcal 建立紀錄習慣 備註 正式開始減脂計畫。",
-      "tags": [],
-      "source": "減脂歷史紀錄 Part 1-2"
-    },
-    {
-      "day": 2,
-      "label": "Day002",
-      "weight": 99.2,
-      "summary": "體重 變化 較起始體重下降 0.4kg 討論內容 開始確認： 是否需要 168 斷食 是否一定要重訓 重訓與有氧如何安排 結論 不強制斷食 重訓優先於有氧 • • • • • • • • • • • • • 以建立習慣為主",
-      "tags": [],
-      "source": "減脂歷史紀錄 Part 1-2"
-    },
-    {
-      "day": 3,
-      "label": "Day003",
-      "weight": 98.6,
-      "summary": "體重 運動 開始建立固定運動模式： 熱身10分鐘 重訓30分鐘 有氧30分鐘 總運動時間： 70分鐘 討論內容 詢問： 重訓一定要做到完全沒力嗎？ 結論 不必追求痠痛 保留1~2下餘力即可 重點是長期累積",
-      "tags": [],
-      "source": "減脂歷史紀錄 Part 1-2"
-    },
-    {
-      "day": 4,
-      "label": "Day004",
-      "weight": 98.4,
-      "summary": "體重 午餐 白飯150g 水蓮1包 雞蛋豆腐半盒 雞腿1隻 櫛瓜半條 • • • • • • • • • • • • 晚餐 鯛魚片300g 豆腐半盒 櫛瓜半條 青菜1碗 馬鈴薯泥200g 點心 核桃燕麥飲 109 kcal",
-      "tags": [],
-      "source": "減脂歷史紀錄 Part 1-2"
-    },
-    {
-      "day": 5,
-      "label": "Day005",
-      "weight": 98.1,
-      "summary": "體重 午餐 白飯150g 雞肉1碗 青菜2盤 雞蛋2顆 晚餐 番茄2顆 雞胸肉290g 馬鈴薯泥200g 生菜1碗 低脂起司1片 飯後活動 飯後散步 評估 蛋白質充足。 開始建立： 飯後散步習慣 • • • • • • •",
-      "tags": [],
-      "source": "減脂歷史紀錄 Part 1-2"
-    },
-    {
-      "day": 6,
-      "label": "Day006",
-      "weight": 97.8,
-      "summary": "體重 午餐 白飯150g 鯛魚片450g 青菜1.5碗 雞蛋1顆 泡菜豆芽湯半碗 晚餐 馬鈴薯220g 燕麥50g 去皮雞腿230g 無糖優格300cc 小黃瓜300g 運動 重訓 有氧 總時間： 85分鐘 運動消耗： 579 kcal",
-      "tags": [],
-      "source": "減脂歷史紀錄 Part 1-2"
-    },
-    {
-      "day": 7,
-      "label": "Day007",
-      "weight": 97.8,
-      "summary": "體重 午餐 雞胸肉150g 豆腐1盒 白飯150g 地瓜葉1盤 無糖優格100g 下午狀況 出現： 飢餓感增加 發抖感 補充 高蛋白飲 熱量 176 kcal 蛋白質 24g 分析 發現： 當雞肉量由原本約250~300g降低至150g後，",
-      "tags": [],
-      "source": "減脂歷史紀錄 Part 1-2"
-    },
-    {
-      "day": 8,
-      "label": "Day008",
-      "weight": 97.8,
-      "summary": "體重 討論主題 碳水是否需要大幅降低？ 發現 目前飲食： 白飯150g 馬鈴薯200~250g 燕麥50g 仍持續下降體重。 結論 不需要： 生酮 極低碳 完全不吃飯 策略改為： 重訓日： 160~200g碳水 一般日： 120~160g碳水",
-      "tags": [],
-      "source": "減脂歷史紀錄 Part 1-2"
-    },
-    {
-      "day": 9,
-      "label": "Day009",
-      "weight": null,
-      "summary": "身體狀況 便秘持續 • • • • • • • • 狀況 排便次數下降 飲食調整 增加： 青菜 小黃瓜 優格 水分 運動 持續： 飯後散步 快走 結論 便秘期間： 不降低進食量。 優先增加： 纖維 水分 活動量",
-      "tags": [],
-      "source": "減脂歷史紀錄 Part 1-2"
-    },
-    {
-      "day": 10,
-      "label": "Day010",
-      "weight": null,
-      "summary": "感冒期 症狀 疲勞 容易累 精神較差 原本訓練 6個器材 每項： 3組 • • • • • • • • • • • • • 調整後 6個器材 每項： 2組 原則 保持運動習慣 不要追求訓練量。",
-      "tags": [],
-      "source": "減脂歷史紀錄 Part 1-2"
-    },
-    {
-      "day": 11,
-      "label": "Day011",
-      "weight": null,
-      "summary": "重訓觀念建立 提問： 重訓一定要練到很痠嗎？ 討論結果 錯誤觀念： 不痠＝沒練到 正確觀念： 不一定會痠 肌肉仍可能成長 觀察重點 比起痠痛： 更重要的是： 重量進步 次數進步 動作穩定",
-      "tags": [],
-      "source": "減脂歷史紀錄 Part 1-2"
-    },
-    {
-      "day": 12,
-      "label": "Day012",
-      "weight": null,
-      "summary": "全身訓練模式建立 決定： • • • • • • • 由分化訓練改為全身訓練。 原因： 目前目標： 保留肌肉 提高消耗 增加訓練頻率 菜單 胸推機 10~15下 2~3組 高位下拉 10~15下 2~3組 坐姿划船 10~15下",
-      "tags": [],
-      "source": "減脂歷史紀錄 Part 1-2"
-    },
-    {
-      "day": 13,
-      "label": "Day013",
-      "weight": null,
-      "summary": "討論 運動配置： 熱身10分鐘 重訓30分鐘 有氧30分鐘 是否可行？ 結論 非常適合目前階段。 原因： 可長期執行 恢復壓力合理 不影響感冒恢復",
-      "tags": [],
-      "source": "減脂歷史紀錄 Part 1-2"
-    },
-    {
-      "day": 14,
-      "label": "Day014",
-      "weight": null,
-      "summary": "體脂率觀察 出現現象： 體重下降 但體脂率短暫上升 • • • • • • 分析 原因可能： 水分變化 感冒 測量時間不同 結論 觀察： 7日平均 而非： 單日體脂率",
-      "tags": [],
-      "source": "減脂歷史紀錄 Part 1-2"
-    },
-    {
-      "day": 15,
-      "label": "Day015",
-      "weight": null,
-      "summary": "肉量調整實驗 原本： 每餐250~300g肉 改為： 150g肉 結果 下午出現： 明顯飢餓 發抖感 分析 蛋白質下降後： 飽足感下降。 • • • • • 結論 適合份量： 每餐： 200~250g 每日： 120~140g蛋白質",
-      "tags": [],
-      "source": "減脂歷史紀錄 Part 1-2"
-    },
-    {
-      "day": 16,
-      "label": "Day016",
-      "weight": null,
-      "summary": "高蛋白飲補充 補充品： 乳清蛋白 營養： 176 kcal 蛋白質24g 使用時機 運動後 下午過餓時 原則 避免： 餓到發抖後暴食。",
-      "tags": [],
-      "source": "減脂歷史紀錄 Part 1-2"
-    },
-    {
-      "day": 17,
-      "label": "Day017",
-      "weight": null,
-      "summary": "4+2R代謝飲食法討論 內容： 4天低碳 2天補碳 • • • • 是否適合？ 目前： 不適合。 原因： 體重仍持續下降 尚未進入停滯期 未來使用時機 當： 體重卡住2~3週 飲食確實執行 腰圍無變化 再考慮導入。",
-      "tags": [],
-      "source": "減脂歷史紀錄 Part 1-2"
-    },
-    {
-      "day": 18,
-      "label": "Day018",
-      "weight": null,
-      "summary": "70kg目標建立 當前體重： 目標： 需減少： 階段目標 ↓ ↓ • • • • • ↓ ↓ ↓ 執行策略 飲食： 1500~1800 kcal 蛋白質： 120~140g 運動： 每週4~5次",
-      "tags": [],
-      "source": "減脂歷史紀錄 Part 1-2"
-    },
-    {
-      "day": 19,
-      "label": "Day019",
-      "weight": null,
-      "summary": "長期策略確認 不再追求： 快速減重 極低碳 極低熱量 改為： 每日 記錄體重 記錄飲食 記錄運動 • • • • • • 每週 穩定下降0.5~1kg 每月 檢查趨勢 第二階段成果 已建立： 飲食系統 兩餐制 高蛋白 中等碳水",
-      "tags": [],
-      "source": "減脂歷史紀錄 Part 1-2"
-    }
-  ],
-  "coachKnowledge": [
-    {
-      "title": "第一原則：長期執行大於完美執行",
-      "body": "減脂是 365 天計畫，不是 24 小時計畫。聚餐、甜點、生日與旅行都允許存在；失誤後下一餐回到正軌即可。"
-    },
-    {
-      "title": "第二原則：不追求餓肚子",
-      "body": "過度飢餓不會提高成功率，反而增加暴食風險。曾把雞肉量降到 150g 後出現下午飢餓、發抖、注意力下降。"
-    },
-    {
-      "title": "第三原則：蛋白質優先",
-      "body": "每日蛋白質目標 120~140g。主要來源包含雞胸肉、去皮雞腿、魚肉、雞蛋、優格、乳清蛋白；無糖豆漿容易脹氣，不建議依賴。"
-    },
-    {
-      "title": "第四原則：碳水不是敵人",
-      "body": "減脂期間保留白飯、馬鈴薯、地瓜、燕麥。重訓日 160~200g，一般日 120~160g，休息日 100~140g，避免極低碳。"
-    },
-    {
-      "title": "第五原則：不需要每天力竭",
-      "body": "訓練目的包含保留肌肉、建立習慣、提高代謝。不追求練到吐或隔天廢掉，保留 1~2 下餘力即可。"
-    },
-    {
-      "title": "第六原則：不痠不代表沒效果",
-      "body": "觀察指標優先順序是重量進步、次數進步、動作品質，最後才是痠痛感。"
-    },
-    {
-      "title": "第七原則：感冒期間調整而非停止",
-      "body": "疲勞或精神差時，把原本 3 組改成 2 組，有氧維持低強度；重點是維持習慣，不追求進步。"
-    },
-    {
-      "title": "第八原則：便秘優先處理",
-      "body": "排便不順時增加青菜、小黃瓜、優格、水分，並維持快走與飯後散步。"
-    },
-    {
-      "title": "第九原則：飯後散步是高 CP 值習慣",
-      "body": "飯後散步 30~40 分鐘有助於提高日常活動量、穩定執行，也比追求高強度更適合長期減脂。"
-    }
-  ]
-};
+window.fatLossHistory = [
+  {
+    "date": "2026-05-18",
+    "weight": 106,
+    "calories": null,
+    "protein": null,
+    "exercise": null,
+    "duration": 0,
+    "deficit": null,
+    "completeness": "資料不足",
+    "source": "減脂每日熱量報表_2026-05-18_至_2026-06-19.xlsx"
+  },
+  {
+    "date": "2026-06-05",
+    "weight": 97.8,
+    "calories": 1450,
+    "protein": 115,
+    "exercise": "飯後運動（圖片紀錄）",
+    "duration": 0,
+    "deficit": null,
+    "completeness": "可估算",
+    "source": "減脂每日熱量報表_2026-05-18_至_2026-06-19.xlsx"
+  },
+  {
+    "date": "2026-06-06",
+    "weight": 97.4,
+    "calories": 1775,
+    "protein": 145,
+    "exercise": "飯後快走約30分鐘",
+    "duration": 30,
+    "deficit": null,
+    "completeness": "可估算",
+    "source": "減脂每日熱量報表_2026-05-18_至_2026-06-19.xlsx"
+  },
+  {
+    "date": "2026-06-08",
+    "weight": 97.3,
+    "calories": 1700,
+    "protein": 140,
+    "exercise": "重訓58分29秒；飯後Zone 2有氧50分鐘",
+    "duration": 108,
+    "deficit": null,
+    "completeness": "可估算",
+    "source": "減脂每日熱量報表_2026-05-18_至_2026-06-19.xlsx"
+  },
+  {
+    "date": "2026-06-09",
+    "weight": 96.8,
+    "calories": 1650,
+    "protein": 145,
+    "exercise": "上午運動1小時17分；晚上Zone 2約29分鐘",
+    "duration": 106,
+    "deficit": null,
+    "completeness": "完整度高",
+    "source": "減脂每日熱量報表_2026-05-18_至_2026-06-19.xlsx"
+  },
+  {
+    "date": "2026-06-10",
+    "weight": 96.8,
+    "calories": 1425,
+    "protein": 120,
+    "exercise": "上午快走31分鐘；晚上重訓30分鐘＋Zone 2約37分鐘",
+    "duration": 98,
+    "deficit": null,
+    "completeness": "完整度高",
+    "source": "減脂每日熱量報表_2026-05-18_至_2026-06-19.xlsx"
+  },
+  {
+    "date": "2026-06-11",
+    "weight": null,
+    "calories": 1630,
+    "protein": 160,
+    "exercise": "約60分鐘活動（原紀錄忘記按停止）",
+    "duration": 60,
+    "deficit": null,
+    "completeness": "完整度高",
+    "source": "減脂每日熱量報表_2026-05-18_至_2026-06-19.xlsx"
+  },
+  {
+    "date": "2026-06-12",
+    "weight": 97.2,
+    "calories": 2125,
+    "protein": 175,
+    "exercise": "早上器械訓練約34分鐘",
+    "duration": 34,
+    "deficit": null,
+    "completeness": "完整度高",
+    "source": "減脂每日熱量報表_2026-05-18_至_2026-06-19.xlsx"
+  },
+  {
+    "date": "2026-06-13",
+    "weight": null,
+    "calories": 1475,
+    "protein": 108,
+    "exercise": "休息日",
+    "duration": 0,
+    "deficit": null,
+    "completeness": "完整度高",
+    "source": "減脂每日熱量報表_2026-05-18_至_2026-06-19.xlsx"
+  },
+  {
+    "date": "2026-06-14",
+    "weight": 96.8,
+    "calories": 740,
+    "protein": 102,
+    "exercise": "游泳36分21秒、750m；晚間Zone 2快走32分16秒",
+    "duration": 68,
+    "deficit": null,
+    "completeness": "僅午餐／部分日",
+    "source": "減脂每日熱量報表_2026-05-18_至_2026-06-19.xlsx"
+  },
+  {
+    "date": "2026-06-15",
+    "weight": 96.2,
+    "calories": 1235,
+    "protein": 115,
+    "exercise": "Zone 2快走36分19秒，平均心率121",
+    "duration": 36,
+    "deficit": null,
+    "completeness": "完整度高",
+    "source": "減脂每日熱量報表_2026-05-18_至_2026-06-19.xlsx"
+  },
+  {
+    "date": "2026-06-16",
+    "weight": 96.8,
+    "calories": 1470,
+    "protein": 108,
+    "exercise": "重訓68分59秒；飯後游泳35分46秒、625m",
+    "duration": 103,
+    "deficit": null,
+    "completeness": "完整度高",
+    "source": "減脂每日熱量報表_2026-05-18_至_2026-06-19.xlsx"
+  },
+  {
+    "date": "2026-06-17",
+    "weight": 96.6,
+    "calories": 1400,
+    "protein": 140,
+    "exercise": "跑步機快走32分26秒，平均心率130",
+    "duration": 32,
+    "deficit": null,
+    "completeness": "完整度高",
+    "source": "減脂每日熱量報表_2026-05-18_至_2026-06-19.xlsx"
+  },
+  {
+    "date": "2026-06-18",
+    "weight": 96.6,
+    "calories": 1750,
+    "protein": 140,
+    "exercise": "早上重訓40分35秒；晚上快走33分鐘",
+    "duration": 73,
+    "deficit": null,
+    "completeness": "完整度高",
+    "source": "減脂每日熱量報表_2026-05-18_至_2026-06-19.xlsx"
+  },
+  {
+    "date": "2026-06-19",
+    "weight": 96.3,
+    "calories": 1450,
+    "protein": 110,
+    "exercise": "室內單車（恢復騎）",
+    "duration": 32,
+    "deficit": 1050,
+    "completeness": "完整",
+    "source": "每日熱量減脂報表_依對話整理.xlsx"
+  },
+  {
+    "date": "2026-06-20",
+    "weight": 96,
+    "calories": 1175,
+    "protein": 55,
+    "exercise": "跑步機健走／Zone2",
+    "duration": 42,
+    "deficit": 1325,
+    "completeness": "部分",
+    "source": "每日熱量減脂報表_依對話整理.xlsx"
+  },
+  {
+    "date": "2026-06-21",
+    "weight": 96.2,
+    "calories": 1500,
+    "protein": 70,
+    "exercise": "未記錄",
+    "duration": 0,
+    "deficit": 675,
+    "completeness": "低",
+    "source": "每日熱量減脂報表_依對話整理.xlsx"
+  },
+  {
+    "date": "2026-06-22",
+    "weight": 95.8,
+    "calories": 1000,
+    "protein": 75,
+    "exercise": "快走10分＋器械重訓25分＋快走30分",
+    "duration": 65,
+    "deficit": 1500,
+    "completeness": "部分",
+    "source": "每日熱量減脂報表_依對話整理.xlsx"
+  },
+  {
+    "date": "2026-06-23",
+    "weight": 95.8,
+    "calories": 900,
+    "protein": 65,
+    "exercise": "室內單車",
+    "duration": 32,
+    "deficit": 1600,
+    "completeness": "部分",
+    "source": "每日熱量減脂報表_依對話整理.xlsx"
+  },
+  {
+    "date": "2026-06-24",
+    "weight": 95.3,
+    "calories": 1600,
+    "protein": 110,
+    "exercise": "自由訓練（重訓＋有氧混合）",
+    "duration": 68,
+    "deficit": 900,
+    "completeness": "完整",
+    "source": "每日熱量減脂報表_依對話整理.xlsx"
+  },
+  {
+    "date": "2026-06-25",
+    "weight": 95.3,
+    "calories": 1975,
+    "protein": 125,
+    "exercise": "游泳",
+    "duration": 33,
+    "deficit": 525,
+    "completeness": "完整",
+    "source": "每日熱量減脂報表_依對話整理.xlsx"
+  },
+  {
+    "date": "2026-06-26",
+    "weight": null,
+    "calories": 1800,
+    "protein": 150,
+    "exercise": "游泳",
+    "duration": 32,
+    "deficit": 700,
+    "completeness": "完整",
+    "source": "每日熱量減脂報表_依對話整理.xlsx"
+  },
+  {
+    "date": "2026-06-27",
+    "weight": 95,
+    "calories": 1825,
+    "protein": 120,
+    "exercise": "游泳",
+    "duration": 33,
+    "deficit": 675,
+    "completeness": "完整",
+    "source": "每日熱量減脂報表_依對話整理.xlsx"
+  },
+  {
+    "date": "2026-06-28",
+    "weight": null,
+    "calories": 1625,
+    "protein": 125,
+    "exercise": "橢圓機",
+    "duration": 33,
+    "deficit": 875,
+    "completeness": "完整",
+    "source": "每日熱量減脂報表_依對話整理.xlsx"
+  },
+  {
+    "date": "2026-06-29",
+    "weight": 94.8,
+    "calories": 1650,
+    "protein": 125,
+    "exercise": "游泳",
+    "duration": 34,
+    "deficit": 850,
+    "completeness": "完整",
+    "source": "每日熱量減脂報表_依對話整理.xlsx"
+  },
+  {
+    "date": "2026-06-30",
+    "weight": 95.4,
+    "calories": 1400,
+    "protein": 70,
+    "exercise": "橢圓機",
+    "duration": 35,
+    "deficit": 1100,
+    "completeness": "完整",
+    "source": "每日熱量減脂報表_依對話整理.xlsx"
+  },
+  {
+    "date": "2026-07-01",
+    "weight": null,
+    "calories": 0,
+    "protein": 0,
+    "exercise": "橢圓機",
+    "duration": 35,
+    "deficit": null,
+    "completeness": "低",
+    "source": "每日熱量減脂報表_依對話整理.xlsx"
+  },
+  {
+    "date": "2026-07-02",
+    "weight": 95.4,
+    "calories": 1600,
+    "protein": null,
+    "exercise": "游泳33分（偏高強度）",
+    "duration": 33,
+    "deficit": null,
+    "completeness": "對話整理",
+    "source": "減脂對話熱量紀錄總表_依對話整理.xlsx",
+    "note": "中碳日完成；蛋白質達標"
+  },
+  {
+    "date": "2026-07-03",
+    "weight": 94.3,
+    "calories": 1800,
+    "protein": null,
+    "exercise": "橢圓機36分（Zone2）",
+    "duration": 36,
+    "deficit": null,
+    "completeness": "對話整理",
+    "source": "減脂對話熱量紀錄總表_依對話整理.xlsx",
+    "note": "開始Wegovy；蛋白質優先"
+  },
+  {
+    "date": "2026-07-04",
+    "weight": 93.4,
+    "calories": 1550,
+    "protein": null,
+    "exercise": "自由訓練79分（低中強度）",
+    "duration": 79,
+    "deficit": null,
+    "completeness": "對話整理",
+    "source": "減脂對話熱量紀錄總表_依對話整理.xlsx",
+    "note": "InBody回顧日；蛋白質有顧到"
+  },
+  {
+    "date": "2026-07-05",
+    "weight": 93.7,
+    "calories": 1500,
+    "protein": null,
+    "exercise": "跑步機/有氧42分（Zone2）",
+    "duration": 42,
+    "deficit": null,
+    "completeness": "對話整理",
+    "source": "減脂對話熱量紀錄總表_依對話整理.xlsx",
+    "note": "蛋白質達標；高普林提醒"
+  },
+  {
+    "date": "2026-07-06",
+    "weight": 92.8,
+    "calories": 1575,
+    "protein": null,
+    "exercise": "游泳36分（偏高強度）",
+    "duration": 36,
+    "deficit": null,
+    "completeness": "對話整理",
+    "source": "減脂對話熱量紀錄總表_依對話整理.xlsx",
+    "note": "有麥當勞但總量可控；曾發抖"
+  },
+  {
+    "date": "2026-07-07",
+    "weight": 92.9,
+    "calories": 1260,
+    "protein": null,
+    "exercise": "跑步機40分（Zone2）",
+    "duration": 40,
+    "deficit": null,
+    "completeness": "對話整理",
+    "source": "減脂對話熱量紀錄總表_依對話整理.xlsx",
+    "note": "整體偏低；晚間有補蛋白"
+  },
+  {
+    "date": "2026-07-08",
+    "weight": 93.1,
+    "calories": 1530,
+    "protein": null,
+    "exercise": "游泳42分（高強度）",
+    "duration": 42,
+    "deficit": null,
+    "completeness": "對話整理",
+    "source": "減脂對話熱量紀錄總表_依對話整理.xlsx",
+    "note": "運動偏高強度；水重回升屬正常"
+  }
+];
