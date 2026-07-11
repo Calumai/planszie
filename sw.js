@@ -1,4 +1,4 @@
-const cacheName = "fat-loss-companion-v12";
+const cacheName = "fat-loss-companion-v13";
 const assets = [
   "./",
   "./index.html",

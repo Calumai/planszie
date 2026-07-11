@@ -364,6 +364,8 @@ let deferredInstallPrompt = null;
 let gasSyncTimer = null;
 let calorieDraft = "";
 let shouldReplaceCalorieDraft = false;
+let quickCalorieDraft = "";
+let shouldReplaceQuickCalorieDraft = false;
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => Array.from(document.querySelectorAll(selector));
@@ -687,8 +689,30 @@ function updateCalorieDisplay(value = calorieDraft) {
   display.textContent = value || "0";
 }
 
+function updateQuickCalorieDisplay(value = quickCalorieDraft) {
+  const display = $("#quickCalorieDisplay");
+  if (!display) {
+    return;
+  }
+
+  display.textContent = value || "0";
+}
+
 function calculateDraftValue() {
   const parts = calorieDraft
+    .split("+")
+    .map((part) => Number(part.trim()))
+    .filter((part) => Number.isFinite(part));
+
+  if (!parts.length) {
+    return 0;
+  }
+
+  return parts.reduce((total, value) => total + value, 0);
+}
+
+function calculateQuickDraftValue() {
+  const parts = quickCalorieDraft
     .split("+")
     .map((part) => Number(part.trim()))
     .filter((part) => Number.isFinite(part));
@@ -710,6 +734,36 @@ function fillCaloriesFromDraft() {
   form.elements.calories.value = calories;
   shouldReplaceCalorieDraft = true;
   $("#foodEstimate").textContent = `已填入 ${formatNumber(calories)} kcal。若這餐有多個品項，可以用 320＋180 這樣相加。`;
+}
+
+function addQuickCalories() {
+  const calories = calculateQuickDraftValue();
+  if (!calories) {
+    const status = $("#quickCalorieStatus");
+    if (status) {
+      status.textContent = "先輸入熱量數字，再按加入。";
+    }
+    return;
+  }
+
+  state.foods.push({
+    id: createId(),
+    mealType: "快速",
+    foodName: "首頁快速輸入",
+    calories,
+    protein: 0,
+    carbs: 0,
+    fat: 0,
+  });
+  saveState();
+  quickCalorieDraft = "";
+  shouldReplaceQuickCalorieDraft = false;
+  updateQuickCalorieDisplay();
+  const status = $("#quickCalorieStatus");
+  if (status) {
+    status.textContent = `已加入 ${formatNumber(calories)} kcal。`;
+  }
+  render();
 }
 
 function applyEstimateToFoodForm() {
@@ -1135,6 +1189,9 @@ function render() {
   });
   $("#proteinRate").textContent = `${Math.min(Math.round((totals.protein / proteinTarget) * 100), 100)}%`;
   $("#exerciseCount").textContent = state.exercises.length;
+  if ($("#quickWeightForm")) {
+    $("#quickWeightForm").elements.weight.value = state.body.weight || "";
+  }
   $("#aiSettingsForm").elements.model.value = aiSettings.model || "gpt-4.1-mini";
   $("#aiSettingsForm").elements.apiKey.value = aiSettings.apiKey || "";
   $("#aiStatus").textContent = aiSettings.apiKey ? "已儲存 API key，送出問題會嘗試 OpenAI" : "目前使用本機陪跑回覆";
@@ -1391,6 +1448,42 @@ function setupEvents() {
     render();
   });
 
+  $$(".quick-calculator-grid button").forEach((button) => {
+    button.addEventListener("click", () => {
+      const key = button.dataset.quickCalKey;
+
+      if (/^\d+$/.test(key)) {
+        if (shouldReplaceQuickCalorieDraft) {
+          quickCalorieDraft = "";
+          shouldReplaceQuickCalorieDraft = false;
+        }
+        if (key === "100") {
+          quickCalorieDraft = quickCalorieDraft && !quickCalorieDraft.endsWith("+")
+            ? `${quickCalorieDraft}+100`
+            : `${quickCalorieDraft}100`;
+        } else {
+          quickCalorieDraft = `${quickCalorieDraft}${key}`.replace(/^0+(\d)/, "$1");
+        }
+      } else if (key === "+") {
+        shouldReplaceQuickCalorieDraft = false;
+        if (quickCalorieDraft && !quickCalorieDraft.endsWith("+")) {
+          quickCalorieDraft += "+";
+        }
+      } else if (key === "back") {
+        quickCalorieDraft = quickCalorieDraft.slice(0, -1);
+        shouldReplaceQuickCalorieDraft = false;
+      } else if (key === "clear") {
+        quickCalorieDraft = "";
+        shouldReplaceQuickCalorieDraft = false;
+      } else if (key === "done") {
+        addQuickCalories();
+        return;
+      }
+
+      updateQuickCalorieDisplay();
+    });
+  });
+
   $$(".calculator-grid button").forEach((button) => {
     button.addEventListener("click", () => {
       const key = button.dataset.calKey;
@@ -1528,6 +1621,20 @@ function setupEvents() {
     saveState();
     saveTodayWeight(weight);
     event.currentTarget.reset();
+    render();
+  });
+
+  $("#quickWeightForm").addEventListener("submit", (event) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const weight = data.get("weight");
+    state.body.weight = weight;
+    saveState();
+    saveTodayWeight(weight);
+    const status = $("#quickWeightStatus");
+    if (status) {
+      status.textContent = `已儲存 ${weight} kg。`;
+    }
     render();
   });
 

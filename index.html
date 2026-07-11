@@ -9,7 +9,7 @@
     <title>減脂紀錄</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="assets/app-icon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="styles.css?v=20260711i" />
+    <link rel="stylesheet" href="styles.css?v=20260711j" />
   </head>
   <body>
     <div class="app-shell">
@@ -50,8 +50,8 @@
           <section class="hero-card">
             <div class="hero-copy">
               <p class="eyebrow">第 <strong id="comicDayNumber">1</strong> 天</p>
-              <h1 id="dashboardTitle">今天先把一筆記錄留下來。</h1>
-              <p class="hero-note" id="dailyAdvice">先記錄第一餐，熱量和蛋白質自然就會清楚。</p>
+              <h1 id="dashboardTitle">首頁只留最常輸入的兩件事。</h1>
+              <p class="hero-note" id="dailyAdvice">先記今天吃了多少，再補今天體重，其他先不用想太多。</p>
             </div>
             <div class="hero-summary">
               <div class="calorie-ring" aria-label="今日熱量進度">
@@ -77,7 +77,54 @@
             </div>
           </section>
 
-          <section class="section-card selector-card">
+          <section class="section-card quick-calorie-card">
+            <div class="section-heading">
+              <p>快速輸入</p>
+              <h2>攝入熱量</h2>
+            </div>
+            <div class="calculator-card quick-dashboard-calculator" aria-label="首頁熱量計算機">
+              <div class="calculator-display">
+                <span>今日攝入 kcal</span>
+                <strong id="quickCalorieDisplay">0</strong>
+              </div>
+              <div class="calculator-grid quick-calculator-grid">
+                <button type="button" data-quick-cal-key="7">7</button>
+                <button type="button" data-quick-cal-key="8">8</button>
+                <button type="button" data-quick-cal-key="9">9</button>
+                <button type="button" data-quick-cal-key="back">⌫</button>
+                <button type="button" data-quick-cal-key="4">4</button>
+                <button type="button" data-quick-cal-key="5">5</button>
+                <button type="button" data-quick-cal-key="6">6</button>
+                <button type="button" data-quick-cal-key="+">＋</button>
+                <button type="button" data-quick-cal-key="1">1</button>
+                <button type="button" data-quick-cal-key="2">2</button>
+                <button type="button" data-quick-cal-key="3">3</button>
+                <button type="button" data-quick-cal-key="clear">C</button>
+                <button type="button" data-quick-cal-key="0">0</button>
+                <button type="button" data-quick-cal-key="00">00</button>
+                <button type="button" data-quick-cal-key="100">+100</button>
+                <button type="button" data-quick-cal-key="done">加入</button>
+              </div>
+            </div>
+            <p class="connection-status" id="quickCalorieStatus">可直接輸入 300＋450 這種加總。</p>
+          </section>
+
+          <section class="section-card quick-weight-card">
+            <div class="section-heading">
+              <p>快速輸入</p>
+              <h2>今日體重</h2>
+            </div>
+            <form class="entry-form" id="quickWeightForm">
+              <label>
+                今日體重 kg
+                <input name="weight" type="number" min="30" step="0.1" placeholder="例如 99.0" required />
+              </label>
+              <button class="primary-button" type="submit">儲存體重</button>
+            </form>
+            <p class="connection-status" id="quickWeightStatus">輸入後會同步到趨勢圖。</p>
+          </section>
+
+          <section class="section-card selector-card is-pruned">
             <div class="section-heading">
               <p>今日設定</p>
               <h2 id="missionDayPill">第 1 天 · 持續記錄</h2>
@@ -103,26 +150,9 @@
                 </select>
               </label>
             </div>
-            <div class="quick-jump-grid">
-              <button class="jump-tab quick-jump" data-target-tab="food" type="button">
-                <span class="jump-icon icon-food" aria-hidden="true"></span>
-                <strong>記飲食</strong>
-                <small>一餐一筆就好</small>
-              </button>
-              <button class="jump-tab quick-jump" data-target-tab="trends" type="button">
-                <span class="jump-icon icon-trends" aria-hidden="true"></span>
-                <strong>記體重</strong>
-                <small>早上量最穩</small>
-              </button>
-              <button class="jump-tab quick-jump" data-target-tab="exercise" type="button">
-                <span class="jump-icon icon-exercise" aria-hidden="true"></span>
-                <strong>記運動</strong>
-                <small>時間先填也行</small>
-              </button>
-            </div>
           </section>
 
-          <section class="section-card macro-panel">
+          <section class="section-card macro-panel is-pruned">
             <div class="section-heading">
               <p>今日總量</p>
               <h2>熱量和三大營養素</h2>
@@ -143,7 +173,7 @@
             </div>
           </section>
 
-          <section class="section-card body-panel">
+          <section class="section-card body-panel is-pruned">
             <div class="section-heading">
               <p>身體狀態</p>
               <h2>今天的身體感受</h2>
@@ -195,7 +225,7 @@
             </form>
           </section>
 
-          <section class="section-card habit-panel">
+          <section class="section-card habit-panel is-pruned">
             <div class="section-heading">
               <p>習慣分數</p>
               <h2><span id="habitScore">0</span> / 100</h2>
@@ -207,7 +237,7 @@
             </form>
           </section>
 
-          <section class="section-card stage-panel">
+          <section class="section-card stage-panel is-pruned">
             <div class="section-heading">
               <p>今天提醒</p>
               <h2 id="stageName">紀律 Discipline</h2>
@@ -219,7 +249,7 @@
             </div>
           </section>
 
-          <section class="section-card summary-panel">
+          <section class="section-card summary-panel is-pruned">
             <div class="section-heading">
               <p>今日摘要</p>
               <h2>一眼看完</h2>
@@ -519,8 +549,8 @@
       </aside>
     </div>
 
-    <script src="history-data.js?v=20260711i"></script>
-    <script src="gas-seed-data.js?v=20260711i"></script>
-    <script src="app.js?v=20260711i"></script>
+    <script src="history-data.js?v=20260711j"></script>
+    <script src="gas-seed-data.js?v=20260711j"></script>
+    <script src="app.js?v=20260711j"></script>
   </body>
 </html>

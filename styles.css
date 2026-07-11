@@ -394,6 +394,28 @@ textarea:focus {
   white-space: nowrap;
 }
 
+.quick-dashboard-calculator .calculator-grid button {
+  min-height: 76px;
+  font-size: 1.36rem;
+}
+
+.quick-dashboard-calculator .calculator-grid button[data-quick-cal-key="done"] {
+  background: #1f7d4c;
+}
+
+.quick-dashboard-calculator .calculator-grid button[data-quick-cal-key="clear"],
+.quick-dashboard-calculator .calculator-grid button[data-quick-cal-key="back"] {
+  background: #a9503d;
+}
+
+.quick-dashboard-calculator .calculator-grid button[data-quick-cal-key="+"] {
+  background: #5360aa;
+}
+
+.quick-dashboard-calculator .calculator-grid button[data-quick-cal-key="100"] {
+  background: #8d6b35;
+}
+
 .quick-jump-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -976,6 +998,8 @@ progress::-webkit-progress-value {
     grid-column: 1 / -1;
   }
 
+  #dashboard .quick-calorie-card,
+  #dashboard .quick-weight-card,
   #dashboard .selector-card,
   #dashboard .macro-panel,
   #dashboard .body-panel,
