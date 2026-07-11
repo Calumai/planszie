@@ -9,7 +9,7 @@
     <title>減脂紀錄</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="assets/app-icon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="styles.css?v=20260711k" />
+    <link rel="stylesheet" href="styles.css?v=20260711l" />
   </head>
   <body>
     <div class="app-shell">
@@ -391,6 +391,22 @@
             </div>
           </section>
 
+          <section class="section-card">
+            <div class="section-heading">
+              <p>最近 7 天</p>
+              <h2>熱量變化</h2>
+            </div>
+            <div class="mini-history-chart" id="calorieTrendChart" aria-label="最近熱量趨勢"></div>
+          </section>
+
+          <section class="section-card">
+            <div class="section-heading">
+              <p>今天吃了什麼</p>
+              <h2>今日飲食紀錄</h2>
+            </div>
+            <div id="trendsFoodRecords" class="record-list"></div>
+          </section>
+
           <section class="section-card history-panel">
             <div class="section-heading">
               <p>歷史紀錄</p>
@@ -423,14 +439,11 @@
             </div>
             <details class="settings-block" open>
               <summary>Google Apps Script 同步</summary>
-              <form class="gas-form" id="gasSettingsForm">
-                <label>
-                  固定 GAS Web App URL
-                  <input name="gasUrl" type="url" readonly />
-                </label>
-                <button class="ghost-button" type="submit">重新套用固定 GAS</button>
-              </form>
+              <div class="gas-fixed-note">
+                固定使用你提供的 GAS，同步時會自動連到同一條網址，不需要再輸入。
+              </div>
               <div class="backup-actions">
+                <button class="ghost-button" id="applyFixedGas" type="button">重新套用固定 GAS</button>
                 <button class="ghost-button" id="pushGas" type="button">推送到雲端</button>
                 <button class="ghost-button" id="pullGas" type="button">從雲端讀取</button>
               </div>
@@ -553,8 +566,8 @@
       </aside>
     </div>
 
-    <script src="history-data.js?v=20260711k"></script>
-    <script src="gas-seed-data.js?v=20260711k"></script>
-    <script src="app.js?v=20260711k"></script>
+    <script src="history-data.js?v=20260711l"></script>
+    <script src="gas-seed-data.js?v=20260711l"></script>
+    <script src="app.js?v=20260711l"></script>
   </body>
 </html>

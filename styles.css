@@ -890,6 +890,19 @@ progress::-webkit-progress-value {
   white-space: nowrap;
 }
 
+.mini-history-chart .empty-state {
+  width: 100%;
+}
+
+.gas-fixed-note {
+  padding: 14px 16px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  line-height: 1.65;
+}
+
 .settings-block {
   margin-top: 12px;
 }

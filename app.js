@@ -1195,13 +1195,15 @@ function render() {
   $("#aiSettingsForm").elements.model.value = aiSettings.model || "gpt-4.1-mini";
   $("#aiSettingsForm").elements.apiKey.value = aiSettings.apiKey || "";
   $("#aiStatus").textContent = aiSettings.apiKey ? "已儲存 API key，送出問題會嘗試 OpenAI" : "目前使用本機陪跑回覆";
-  $("#gasSettingsForm").elements.gasUrl.value = fixedGasUrl;
   $("#gasCodeBlock").textContent = gasCode;
   setGasStatus("GAS 已固定綁定。換裝置後直接開網站就能同步，也可以手動推送/讀取。");
 
   renderRecords();
   renderSummary();
   renderWeightChart();
+  renderCalorieTrendChart();
+  renderTrendsFoodRecords();
+  renderHistorySummary();
   renderGrowth();
 }
 
@@ -1314,6 +1316,68 @@ function renderWeightChart() {
     .join("");
 }
 
+function getRecentCalorieSeries() {
+  const fromHistory = historyRecords
+    .filter((item) => Number(item.calories) > 0)
+    .map((item) => ({ date: item.date, calories: Number(item.calories) }));
+  const todayTotals = getTotals();
+  const existingTodayIndex = fromHistory.findIndex((item) => item.date === todayKey);
+
+  if (todayTotals.calories > 0) {
+    const todayEntry = { date: todayKey, calories: todayTotals.calories };
+    if (existingTodayIndex >= 0) {
+      fromHistory[existingTodayIndex] = todayEntry;
+    } else {
+      fromHistory.push(todayEntry);
+    }
+  }
+
+  return fromHistory.slice(-7);
+}
+
+function renderCalorieTrendChart() {
+  const chart = $("#calorieTrendChart");
+  if (!chart) {
+    return;
+  }
+
+  const recent = getRecentCalorieSeries();
+  if (!recent.length) {
+    chart.innerHTML = '<div class="empty-state">記錄熱量後，這裡會出現最近 7 天變化。</div>';
+    return;
+  }
+
+  const max = Math.max(...recent.map((item) => item.calories), 1800);
+  chart.innerHTML = recent
+    .map((item) => {
+      const height = Math.max(24, (item.calories / max) * 112);
+      const label = `${item.date.slice(5)} · ${formatNumber(item.calories)} kcal`;
+      return `<span title="${escapeHtml(label)}" style="height:${height}px"><small>${escapeHtml(item.date.slice(5))}</small></span>`;
+    })
+    .join("");
+}
+
+function renderTrendsFoodRecords() {
+  const list = $("#trendsFoodRecords");
+  if (!list) {
+    return;
+  }
+
+  list.innerHTML = state.foods.length
+    ? state.foods
+        .map(
+          (food) => `
+          <article class="record-card">
+            <span>${escapeHtml(food.mealType)}</span>
+            <strong>${escapeHtml(food.foodName)}</strong>
+            <p>${formatNumber(food.calories)} kcal · 蛋白質 ${formatNumber(food.protein)}g · 碳水 ${formatNumber(food.carbs)}g · 脂肪 ${formatNumber(food.fat)}g</p>
+          </article>
+        `,
+        )
+        .join("")
+    : '<div class="empty-state">今天的飲食記錄會顯示在這裡。</div>';
+}
+
 function activateTab(tabId) {
   $$(".tab-button").forEach((item) => {
     item.classList.toggle("is-active", item.dataset.tab === tabId);
@@ -1324,8 +1388,34 @@ function activateTab(tabId) {
 }
 
 function renderHistorySummary() {
-  const recordsWithCalories = historyRecords.filter((item) => Number(item.calories) > 0);
-  const recordsWithWeight = historyRecords.filter((item) => Number(item.weight) > 0);
+  const recordsWithCalories = getRecentCalorieSeries().length
+    ? historyRecords
+        .filter((item) => Number(item.calories) > 0)
+        .map((item) => ({ ...item, calories: Number(item.calories) }))
+    : [];
+  const todayTotals = getTotals();
+  if (todayTotals.calories > 0) {
+    const existingTodayCalories = recordsWithCalories.findIndex((item) => item.date === todayKey);
+    const mergedToday = { date: todayKey, calories: todayTotals.calories };
+    if (existingTodayCalories >= 0) {
+      recordsWithCalories[existingTodayCalories] = { ...recordsWithCalories[existingTodayCalories], ...mergedToday };
+    } else {
+      recordsWithCalories.push(mergedToday);
+    }
+  }
+
+  const recordsWithWeight = historyRecords
+    .filter((item) => Number(item.weight) > 0)
+    .map((item) => ({ ...item, weight: Number(item.weight) }));
+  if (state.body.weight) {
+    const currentWeight = { date: todayKey, weight: Number(state.body.weight) };
+    const existingTodayWeight = recordsWithWeight.findIndex((item) => item.date === todayKey);
+    if (existingTodayWeight >= 0) {
+      recordsWithWeight[existingTodayWeight] = currentWeight;
+    } else {
+      recordsWithWeight.push(currentWeight);
+    }
+  }
   const latestWeight = recordsWithWeight.at(-1);
   const averageCalories =
     recordsWithCalories.reduce((total, item) => total + Number(item.calories), 0) /
@@ -1343,6 +1433,10 @@ function renderHistorySummary() {
   averageNode.textContent = recordsWithCalories.length ? `${formatNumber(averageCalories)} kcal` : "-- kcal";
 
   const recent = recordsWithCalories.slice(-10);
+  if (!recent.length) {
+    chart.innerHTML = '<div class="empty-state">最近沒有可顯示的熱量資料。</div>';
+    return;
+  }
   const max = Math.max(...recent.map((item) => item.calories), 1800);
   chart.innerHTML = recent
     .map((item) => {
@@ -1587,11 +1681,9 @@ function setupEvents() {
     $("#aiStatus").textContent = aiSettings.apiKey ? "設定已儲存" : "目前使用本機陪跑回覆";
   });
 
-  $("#gasSettingsForm").addEventListener("submit", (event) => {
-    event.preventDefault();
+  $("#applyFixedGas").addEventListener("click", () => {
     gasSettings = { gasUrl: fixedGasUrl };
     saveGasSettings();
-    $("#gasSettingsForm").elements.gasUrl.value = fixedGasUrl;
     setGasStatus("固定 GAS 已套用，正在推送目前資料...");
     pushToGas().catch(() => setGasStatus("GAS 推送失敗，請確認部署權限是 Anyone。"));
   });
