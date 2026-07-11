@@ -4,6 +4,7 @@ const weightKey = "fatLossCompanion:weights";
 const aiSettingsKey = "fatLossCompanion:aiSettings";
 const gasSettingsKey = "fatLossCompanion:gasSettings";
 const historyRecords = Array.isArray(window.fatLossHistory) ? window.fatLossHistory : [];
+const gasSeedRows = Array.isArray(window.fatLossGasSeedRows) ? window.fatLossGasSeedRows : [];
 
 const defaultState = {
   dayType: "normal",
@@ -128,14 +129,167 @@ const rickyWorkoutTemplate = {
     "Ricky風格器械日：快走6-8分鐘；高位下拉3組、坐姿划船3組、反向飛鳥2-3組、腿推3組、臀外展3組、三頭2組；橢圓機/腳踏車8-12分鐘；背闊肌、胸、肩後側、小腿伸展。姿勢重點：下拉先沉肩再拉、划船不圓背、反向飛鳥不聳肩、腿推膝蓋跟腳尖同方向且不鎖死，小腿痠就降低有氧阻力。",
 };
 
-const gasCode = `function getSheet_() {
-  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  var sheet = spreadsheet.getSheetByName("FatLossCompanion");
-  if (!sheet) {
-    sheet = spreadsheet.insertSheet("FatLossCompanion");
-    sheet.appendRow(["Date", "Weight", "Water", "Diet", "Exercise", "Notes", "Payload", "UpdatedAt"]);
+const gasCode = `var SHEET_NAME = "FatLossCompanion";
+var PAYLOAD_SHEET_NAME = "FatLossCompanion_Payload";
+var HEADERS = ["Date", "Weight", "Waist", "Diet_Summary", "Exercise", "Cal_Median", "Protein", "Note"];
+var PAYLOAD_HEADERS = ["Date", "Payload", "UpdatedAt"];
+var HISTORICAL_ROWS = ${JSON.stringify(gasSeedRows, null, 2)};
+
+function ensureHeaders_(sheet, headers) {
+  var currentHeaders = sheet.getRange(1, 1, 1, headers.length).getValues()[0];
+  var shouldReset = headers.some(function(header, index) {
+    return currentHeaders[index] !== header;
+  });
+
+  if (shouldReset) {
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
   }
+}
+
+function normalizeCell_(value) {
+  return value === null || value === undefined ? "" : value;
+}
+
+function formatDateCell_(value) {
+  return value instanceof Date
+    ? Utilities.formatDate(value, Session.getScriptTimeZone(), "yyyy-MM-dd")
+    : String(value || "").substring(0, 10);
+}
+
+function findRowIndexByDate_(sheet, dateStr) {
+  var lastRow = sheet.getLastRow();
+  if (lastRow <= 1) {
+    return -1;
+  }
+
+  var values = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+  for (var index = 0; index < values.length; index++) {
+    if (formatDateCell_(values[index][0]) === dateStr) {
+      return index + 2;
+    }
+  }
+
+  return -1;
+}
+
+function upsertRowByDate_(sheet, rowData) {
+  var dateStr = formatDateCell_(rowData[0]);
+  var rowIndex = findRowIndexByDate_(sheet, dateStr);
+
+  if (rowIndex > -1) {
+    sheet.getRange(rowIndex, 1, 1, rowData.length).setValues([rowData]);
+  } else {
+    sheet.appendRow(rowData);
+  }
+}
+
+function toVisibleRow_(data) {
+  return [
+    data.date || Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd"),
+    normalizeCell_(data.weight),
+    normalizeCell_(data.waist),
+    normalizeCell_(data.dietSummary || data.diet_summary || ""),
+    normalizeCell_(data.exercise),
+    normalizeCell_(data.calMedian != null ? data.calMedian : data.calories),
+    normalizeCell_(data.protein),
+    normalizeCell_(data.note || data.notes || ""),
+  ];
+}
+
+function getSheet_() {
+  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = spreadsheet.getSheetByName(SHEET_NAME);
+  if (!sheet) {
+    sheet = spreadsheet.insertSheet(SHEET_NAME);
+  }
+  ensureHeaders_(sheet, HEADERS);
+  ensureHistoricalRows_(sheet);
   return sheet;
+}
+
+function getPayloadSheet_() {
+  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  var sheet = spreadsheet.getSheetByName(PAYLOAD_SHEET_NAME);
+  if (!sheet) {
+    sheet = spreadsheet.insertSheet(PAYLOAD_SHEET_NAME);
+    sheet.hideSheet();
+  }
+  ensureHeaders_(sheet, PAYLOAD_HEADERS);
+  return sheet;
+}
+
+function ensureHistoricalRows_(sheet) {
+  if (!HISTORICAL_ROWS.length) {
+    return;
+  }
+
+  var existingDates = {};
+  var lastRow = sheet.getLastRow();
+  if (lastRow > 1) {
+    var values = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
+    values.forEach(function(row) {
+      var dateStr = formatDateCell_(row[0]);
+      if (dateStr) {
+        existingDates[dateStr] = true;
+      }
+    });
+  }
+
+  var missingRows = HISTORICAL_ROWS
+    .filter(function(row) {
+      return row.date && !existingDates[row.date];
+    })
+    .map(toVisibleRow_);
+
+  if (missingRows.length) {
+    sheet.getRange(sheet.getLastRow() + 1, 1, missingRows.length, HEADERS.length).setValues(missingRows);
+  }
+}
+
+function upsertPayload_(dateStr, data) {
+  var sheet = getPayloadSheet_();
+  var rowData = [dateStr, JSON.stringify(data), new Date()];
+  var rowIndex = findRowIndexByDate_(sheet, dateStr);
+
+  if (rowIndex > -1) {
+    sheet.getRange(rowIndex, 1, 1, rowData.length).setValues([rowData]);
+  } else {
+    sheet.appendRow(rowData);
+  }
+}
+
+function getPayloadMap_() {
+  var sheet = getPayloadSheet_();
+  var lastRow = sheet.getLastRow();
+  var payloadMap = {};
+
+  if (lastRow <= 1) {
+    return payloadMap;
+  }
+
+  var values = sheet.getRange(2, 1, lastRow - 1, 2).getValues();
+  values.forEach(function(row) {
+    var dateStr = formatDateCell_(row[0]);
+    if (!dateStr || !row[1]) {
+      return;
+    }
+
+    try {
+      payloadMap[dateStr] = JSON.parse(row[1]);
+    } catch (err) {
+      payloadMap[dateStr] = {};
+    }
+  });
+
+  return payloadMap;
+}
+
+function seedHistoricalData() {
+  var sheet = getSheet_();
+  ensureHistoricalRows_(sheet);
+  return ContentService
+    .createTextOutput(JSON.stringify({ status: "success", rows: HISTORICAL_ROWS.length }))
+    .setMimeType(ContentService.MimeType.JSON);
 }
 
 function doPost(e) {
@@ -143,36 +297,10 @@ function doPost(e) {
     var sheet = getSheet_();
     var data = JSON.parse(e.postData.contents || "{}");
     var dateStr = data.date || Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd");
-    var values = sheet.getDataRange().getValues();
-    var rowIndex = -1;
+    data.date = dateStr;
 
-    for (var i = 1; i < values.length; i++) {
-      var rowDate = values[i][0];
-      var formatted = rowDate instanceof Date
-        ? Utilities.formatDate(rowDate, Session.getScriptTimeZone(), "yyyy-MM-dd")
-        : String(rowDate).substring(0, 10);
-      if (formatted === dateStr) {
-        rowIndex = i + 1;
-        break;
-      }
-    }
-
-    var rowData = [
-      dateStr,
-      data.weight || "",
-      data.water || 0,
-      data.dietLog || "",
-      data.exerciseDone ? "完成" : "未完成",
-      data.notes || "",
-      JSON.stringify(data),
-      new Date()
-    ];
-
-    if (rowIndex > -1) {
-      sheet.getRange(rowIndex, 1, 1, rowData.length).setValues([rowData]);
-    } else {
-      sheet.appendRow(rowData);
-    }
+    upsertRowByDate_(sheet, toVisibleRow_(data));
+    upsertPayload_(dateStr, data);
 
     return ContentService
       .createTextOutput(JSON.stringify({ status: "success" }))
@@ -186,24 +314,19 @@ function doPost(e) {
 
 function doGet() {
   var sheet = getSheet_();
+  var payloadMap = getPayloadMap_();
   var values = sheet.getDataRange().getValues();
   var data = values.slice(1).map(function(row) {
-    var dateVal = row[0];
-    var dateStr = dateVal instanceof Date
-      ? Utilities.formatDate(dateVal, Session.getScriptTimeZone(), "yyyy-MM-dd")
-      : String(dateVal).substring(0, 10);
-    var payload = {};
-    try {
-      payload = row[6] ? JSON.parse(row[6]) : {};
-    } catch (err) {
-      payload = {};
-    }
+    var dateStr = formatDateCell_(row[0]);
+    var payload = payloadMap[dateStr] || {};
     payload.date = payload.date || dateStr;
     payload.weight = payload.weight || row[1] || "";
-    payload.water = payload.water || row[2] || 0;
-    payload.dietLog = payload.dietLog || row[3] || "";
-    payload.exerciseDone = payload.exerciseDone || row[4] === "完成";
-    payload.notes = payload.notes || row[5] || "";
+    payload.waist = payload.waist || row[2] || "";
+    payload.dietSummary = payload.dietSummary || row[3] || "";
+    payload.exercise = payload.exercise || row[4] || "";
+    payload.calMedian = payload.calMedian || row[5] || "";
+    payload.protein = payload.protein || row[6] || "";
+    payload.note = payload.note || row[7] || "";
     return payload;
   });
 
@@ -321,17 +444,35 @@ function getAllAppStorage() {
   return localStorageData;
 }
 
+function buildGasDietSummary() {
+  if (!state.foods.length) {
+    return "未記錄";
+  }
+
+  return state.foods.map((food) => `${food.mealType}:${food.foodName}`).join(" | ");
+}
+
+function buildGasExerciseSummary() {
+  if (!state.exercises.length) {
+    return "未記錄";
+  }
+
+  return state.exercises
+    .map((exercise) => `${exercise.exerciseType}${exercise.duration ? `${exercise.duration}分` : ""}`)
+    .join("；");
+}
+
 function getCloudPayload() {
   const totals = getTotals();
   return {
     date: todayKey,
     weight: state.body.weight || "",
-    water: state.habits.water ? 1 : 0,
-    fastStart: "",
-    fastEnd: "",
-    dietLog: state.foods.map((food) => `${food.mealType}: ${food.foodName}`).join("\n"),
-    exerciseDone: state.exercises.length > 0,
-    notes: [
+    waist: state.body.waist || "",
+    dietSummary: buildGasDietSummary(),
+    exercise: buildGasExerciseSummary(),
+    calMedian: totals.calories || "",
+    protein: totals.protein || "",
+    note: [
       `階段：${stages[state.stage]?.label || state.stage}`,
       `熱量：${formatNumber(totals.calories)} kcal`,
       `蛋白質：${formatNumber(totals.protein)} g`,
