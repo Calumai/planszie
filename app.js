@@ -1,4 +1,5 @@
-const todayKey = new Date().toISOString().slice(0, 10);
+const trackingStartKey = "2026-05-19";
+const todayKey = getLocalDateKey();
 const storageKey = `fatLossCompanion:${todayKey}`;
 const weightKey = "fatLossCompanion:weights";
 const aiSettingsKey = "fatLossCompanion:aiSettings";
@@ -6,6 +7,25 @@ const gasSettingsKey = "fatLossCompanion:gasSettings";
 const fixedGasUrl = "https://script.google.com/macros/s/AKfycbzbYDTgjK4oL0KYJ9X_mvfym59Sc35HE8FgH_67QTjAazDIDbmscql4yO_ee5resG08/exec";
 const historyRecords = Array.isArray(window.fatLossHistory) ? window.fatLossHistory : [];
 const gasSeedRows = Array.isArray(window.fatLossGasSeedRows) ? window.fatLossGasSeedRows : [];
+
+function getLocalDateKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function dateKeyToLocalDate(dateKey) {
+  const [year, month, day] = dateKey.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function getMissionDay(dateKey = todayKey) {
+  const dayMs = 24 * 60 * 60 * 1000;
+  const startDate = dateKeyToLocalDate(trackingStartKey);
+  const currentDate = dateKeyToLocalDate(dateKey);
+  return Math.max(1, Math.floor((currentDate - startDate) / dayMs) + 1);
+}
 
 const defaultState = {
   dayType: "normal",
@@ -518,6 +538,10 @@ function setGasStatus(message) {
   const status = $("#gasStatus");
   if (status) {
     status.textContent = message;
+  }
+  const backupStatus = $("#backupStatus");
+  if (backupStatus) {
+    backupStatus.textContent = message;
   }
 }
 
@@ -1034,13 +1058,8 @@ async function askOpenAICoach(question) {
 
 async function answerCoachQuestion(question, button) {
   addChatMessage(question, "user");
-  const waitingMessage = addChatMessage(
-    aiSettings.apiKey ? "我看一下今天的紀錄，幫你抓一個穩的答案..." : coachReply(question),
-  );
-
-  if (!aiSettings.apiKey) {
-    return;
-  }
+  const fallbackReply = coachReply(question);
+  const waitingMessage = addChatMessage("我看一下今天的紀錄，幫你抓一個穩的答案...");
 
   if (button) {
     button.disabled = true;
@@ -1048,11 +1067,11 @@ async function answerCoachQuestion(question, button) {
 
   try {
     const reply = await askOpenAICoach(question);
-    waitingMessage.textContent = reply || coachReply(question);
-    $("#aiStatus").textContent = "已使用 OpenAI 回覆";
+    waitingMessage.textContent = reply || fallbackReply;
+    $("#aiStatus").textContent = reply ? "已使用 AI 教練回覆" : "目前使用本機陪跑回覆";
   } catch {
-    waitingMessage.textContent = `${coachReply(question)}\n\nOpenAI 連線沒有成功，先用本機回覆陪你。`;
-    $("#aiStatus").textContent = "OpenAI 連線失敗，已切回本機回覆";
+    waitingMessage.textContent = fallbackReply;
+    $("#aiStatus").textContent = "AI 連線沒有成功，已切回本機回覆";
   } finally {
     if (button) {
       button.disabled = false;
@@ -1067,12 +1086,15 @@ function render() {
   const remaining = target.calories - totals.calories + totals.exercise;
   const calorieRatio = Math.min(totals.calories / target.calories, 1);
   const circumference = 465;
+  const missionDay = getMissionDay();
 
   $("#todayLabel").textContent = new Intl.DateTimeFormat("zh-TW", {
     month: "long",
     day: "numeric",
     weekday: "long",
   }).format(new Date());
+  $("#comicDayNumber").textContent = missionDay;
+  $("#missionDayPill").textContent = `第 ${missionDay} 天 · 今天有記就算贏`;
 
   $("#dayType").value = state.dayType;
   $("#stageSelect").value = state.stage;
@@ -1207,6 +1229,9 @@ function renderGrowth() {
 
 function renderWeightChart() {
   const chart = $("#weightChart");
+  if (!chart) {
+    return;
+  }
   const recent = weights.slice(-8);
 
   if (!recent.length) {
@@ -1220,10 +1245,25 @@ function renderWeightChart() {
 
   chart.innerHTML = recent
     .map((item) => {
-      const height = 28 + ((max - item.weight) / range) * 150;
-      return `<div class="trend-bar" title="${item.date} · ${item.weight}kg" style="height:${height}px"></div>`;
+      const height = 36 + ((item.weight - min) / range) * 120;
+      return `
+        <article class="trend-point" title="${item.date} · ${item.weight}kg">
+          <span class="trend-value">${item.weight}</span>
+          <div class="trend-bar" style="height:${height}px"></div>
+          <small>${item.date.slice(5)}</small>
+        </article>
+      `;
     })
     .join("");
+}
+
+function activateTab(tabId) {
+  $$(".tab-button").forEach((item) => {
+    item.classList.toggle("is-active", item.dataset.tab === tabId);
+  });
+  $$(".panel").forEach((panel) => {
+    panel.classList.toggle("is-active", panel.id === tabId);
+  });
 }
 
 function renderHistorySummary() {
@@ -1268,10 +1308,7 @@ function addChatMessage(text, role = "coach") {
 function setupEvents() {
   $$(".tab-button").forEach((button) => {
     button.addEventListener("click", () => {
-      $$(".tab-button").forEach((item) => item.classList.remove("is-active"));
-      $$(".panel").forEach((panel) => panel.classList.remove("is-active"));
-      button.classList.add("is-active");
-      $(`#${button.dataset.tab}`).classList.add("is-active");
+      activateTab(button.dataset.tab);
     });
   });
 
@@ -1526,7 +1563,7 @@ function setupEvents() {
 
   $("#installApp").addEventListener("click", async () => {
     if (!deferredInstallPrompt) {
-      $("#backupStatus").textContent = "手機上請用瀏覽器的分享選單，選「加入主畫面」。";
+      setGasStatus("iPhone 用 Safari 的分享選單加入主畫面；Android 用 Chrome 選單安裝 App。");
       return;
     }
 
