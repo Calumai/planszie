@@ -1148,7 +1148,7 @@ function render() {
     weekday: "long",
   }).format(new Date());
   $("#comicDayNumber").textContent = missionDay;
-  $("#missionDayPill").textContent = `第 ${missionDay} 天 · 今天有記就算贏`;
+  $("#missionDayPill").textContent = `第 ${missionDay} 天`;
 
   $("#dayType").value = state.dayType;
   $("#stageSelect").value = state.stage;
