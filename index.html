@@ -9,7 +9,7 @@
     <title>AI 減脂陪跑助手</title>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" href="assets/app-icon.svg" type="image/svg+xml" />
-    <link rel="stylesheet" href="styles.css?v=20260711c" />
+    <link rel="stylesheet" href="styles.css?v=20260711d" />
   </head>
   <body>
     <div class="app-shell">
@@ -534,21 +534,21 @@
                 </div>
                 <form class="gas-form" id="gasSettingsForm">
                   <label>
-                    GAS Web App URL
+                    固定 GAS Web App URL
                     <input
                       name="gasUrl"
                       type="url"
-                      placeholder="https://script.google.com/macros/s/.../exec"
+                      readonly
                     />
                   </label>
-                  <button class="ghost-button" type="submit">儲存 GAS 連結</button>
+                  <button class="ghost-button" type="submit">重新套用固定 GAS</button>
                 </form>
                 <div class="backup-actions">
                   <button class="ghost-button" id="pushGas" type="button">推送到雲端</button>
                   <button class="ghost-button" id="pullGas" type="button">從雲端讀取</button>
                 </div>
                 <p class="connection-status" id="gasStatus">
-                  未連接 GAS。貼上 Web App URL 後，手機資料可以同步到 Google Sheets。
+                  GAS 已固定綁定。換裝置後直接開網站就能同步。
                 </p>
                 <details class="form-guide">
                   <summary>GAS 程式碼</summary>
@@ -736,8 +736,8 @@
       </main>
     </div>
 
-    <script src="history-data.js?v=20260711c"></script>
-    <script src="gas-seed-data.js?v=20260711c"></script>
-    <script src="app.js?v=20260711c"></script>
+    <script src="history-data.js?v=20260711d"></script>
+    <script src="gas-seed-data.js?v=20260711d"></script>
+    <script src="app.js?v=20260711d"></script>
   </body>
 </html>
