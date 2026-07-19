@@ -30,7 +30,7 @@
         <nav class="top-switcher" aria-label="頁面切換">
           <button class="tab-button is-active" data-tab="dashboard" type="button">
             <span class="tab-icon icon-home" aria-hidden="true"></span>
-            <span class="tab-label">體重</span>
+            <span class="tab-label">今天</span>
           </button>
           <button class="tab-button" data-tab="food" type="button">
             <span class="tab-icon icon-food" aria-hidden="true"></span>
@@ -50,7 +50,7 @@
           <section class="hero-card">
             <div class="hero-copy">
               <p class="eyebrow">今天先穩穩記錄</p>
-              <h1 id="dashboardTitle">只要留下熱量和體重，今天就算有往前。</h1>
+              <h1 id="dashboardTitle">留下熱量和體重，今天就算前進。</h1>
               <p class="hero-note" id="dailyAdvice">先記今天吃了多少，再補今天體重，其他晚一點也沒關係。</p>
               <div class="hero-badges">
                 <span class="soft-chip" id="missionDayPill">第 1 天</span>
@@ -301,43 +301,48 @@
                 <p class="connection-status" id="recognitionStatus">可以先打文字，也可以直接拍餐點照片。</p>
               </section>
 
-              <section class="calculator-card" aria-label="熱量計算機">
-                <div class="calculator-display">
-                  <span>熱量 kcal</span>
-                  <strong id="calorieDisplay">0</strong>
-                </div>
-                <div class="calculator-grid">
-                  <button type="button" data-cal-key="7">7</button>
-                  <button type="button" data-cal-key="8">8</button>
-                  <button type="button" data-cal-key="9">9</button>
-                  <button type="button" data-cal-key="back">⌫</button>
-                  <button type="button" data-cal-key="4">4</button>
-                  <button type="button" data-cal-key="5">5</button>
-                  <button type="button" data-cal-key="6">6</button>
-                  <button type="button" data-cal-key="+">＋</button>
-                  <button type="button" data-cal-key="1">1</button>
-                  <button type="button" data-cal-key="2">2</button>
-                  <button type="button" data-cal-key="3">3</button>
-                  <button type="button" data-cal-key="clear">C</button>
-                  <button type="button" data-cal-key="0">0</button>
-                  <button type="button" data-cal-key="00">00</button>
-                  <button type="button" data-cal-key="estimate">估</button>
-                  <button type="button" data-cal-key="done">填入</button>
-                </div>
-                <div class="macro-chip-row">
-                  <button type="button" data-macro-preset="protein">蛋白 +20g</button>
-                  <button type="button" data-macro-preset="carbs">碳水 +30g</button>
-                  <button type="button" data-macro-preset="fat">脂肪 +10g</button>
-                </div>
-              </section>
-
-              <div class="form-grid">
-                <label>熱量 kcal<input name="calories" type="number" min="0" placeholder="可自動估算" /></label>
-                <label>蛋白質 g<input name="protein" type="number" min="0" step="0.1" placeholder="可自動估算" /></label>
-                <label>碳水 g<input name="carbs" type="number" min="0" step="0.1" placeholder="可自動估算" /></label>
-                <label>脂肪 g<input name="fat" type="number" min="0" step="0.1" placeholder="可自動估算" /></label>
-              </div>
               <button class="primary-button" type="submit">加入這一餐</button>
+              <p class="connection-status">數字留空也沒關係，系統會先幫你估一版。</p>
+
+              <details class="food-detail">
+                <summary>自己填數字（可跳過）</summary>
+                <section class="calculator-card" aria-label="熱量計算機">
+                  <div class="calculator-display">
+                    <span>熱量 kcal</span>
+                    <strong id="calorieDisplay">0</strong>
+                  </div>
+                  <div class="calculator-grid">
+                    <button type="button" data-cal-key="7">7</button>
+                    <button type="button" data-cal-key="8">8</button>
+                    <button type="button" data-cal-key="9">9</button>
+                    <button type="button" data-cal-key="back">⌫</button>
+                    <button type="button" data-cal-key="4">4</button>
+                    <button type="button" data-cal-key="5">5</button>
+                    <button type="button" data-cal-key="6">6</button>
+                    <button type="button" data-cal-key="+">＋</button>
+                    <button type="button" data-cal-key="1">1</button>
+                    <button type="button" data-cal-key="2">2</button>
+                    <button type="button" data-cal-key="3">3</button>
+                    <button type="button" data-cal-key="clear">C</button>
+                    <button type="button" data-cal-key="0">0</button>
+                    <button type="button" data-cal-key="00">00</button>
+                    <button type="button" data-cal-key="estimate">估</button>
+                    <button type="button" data-cal-key="done">填入</button>
+                  </div>
+                  <div class="macro-chip-row">
+                    <button type="button" data-macro-preset="protein">蛋白 +20g</button>
+                    <button type="button" data-macro-preset="carbs">碳水 +30g</button>
+                    <button type="button" data-macro-preset="fat">脂肪 +10g</button>
+                  </div>
+                </section>
+
+                <div class="form-grid">
+                  <label>熱量 kcal<input name="calories" type="number" min="0" placeholder="可自動估算" /></label>
+                  <label>蛋白質 g<input name="protein" type="number" min="0" step="0.1" placeholder="可自動估算" /></label>
+                  <label>碳水 g<input name="carbs" type="number" min="0" step="0.1" placeholder="可自動估算" /></label>
+                  <label>脂肪 g<input name="fat" type="number" min="0" step="0.1" placeholder="可自動估算" /></label>
+                </div>
+              </details>
             </form>
           </section>
 
@@ -548,7 +553,7 @@
         <nav class="bottom-nav">
           <button class="tab-button is-active" data-tab="dashboard" type="button">
             <span class="tab-icon icon-home" aria-hidden="true"></span>
-            <span class="tab-label">體重</span>
+            <span class="tab-label">今天</span>
           </button>
           <button class="tab-button" data-tab="food" type="button">
             <span class="tab-icon icon-food" aria-hidden="true"></span>

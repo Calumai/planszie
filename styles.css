@@ -155,7 +155,7 @@ img {
 }
 
 .hero-card {
-  padding: 22px;
+  padding: 18px;
   background:
     linear-gradient(180deg, rgba(234, 242, 236, 0.84) 0%, rgba(255, 254, 251, 0.98) 52%, rgba(247, 244, 238, 0.98) 100%);
   overflow: hidden;
@@ -173,7 +173,7 @@ img {
 
 .hero-copy {
   display: grid;
-  gap: 12px;
+  gap: 8px;
   position: relative;
   z-index: 1;
 }
@@ -185,8 +185,8 @@ img {
 }
 
 h1 {
-  font-size: 2.1rem;
-  line-height: 1.12;
+  font-size: 1.55rem;
+  line-height: 1.22;
 }
 
 h1,
@@ -235,17 +235,21 @@ h2 {
 
 .hero-summary {
   display: grid;
-  gap: 16px;
-  margin-top: 18px;
+  gap: 12px;
+  margin-top: 12px;
   position: relative;
   z-index: 1;
+}
+
+.summary-metrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .calorie-ring {
   position: relative;
   display: grid;
   place-items: center;
-  width: min(100%, 220px);
+  width: min(52%, 154px);
   margin: 0 auto;
   aspect-ratio: 1;
 }
@@ -282,7 +286,7 @@ h2 {
 }
 
 .calorie-ring strong {
-  font-size: 2.7rem;
+  font-size: 2rem;
   line-height: 1;
 }
 
@@ -920,6 +924,42 @@ progress::-webkit-progress-value {
   margin-bottom: 14px;
 }
 
+.food-detail {
+  margin-top: 4px;
+}
+
+.food-detail > summary {
+  cursor: pointer;
+  list-style: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 16px;
+  color: var(--green-deep);
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.food-detail > summary::-webkit-details-marker {
+  display: none;
+}
+
+.food-detail > summary::before {
+  content: "＋";
+  font-weight: 800;
+}
+
+.food-detail[open] > summary {
+  margin-bottom: 14px;
+}
+
+.food-detail[open] > summary::before {
+  content: "－";
+}
+
 .code-block {
   max-height: 320px;
   overflow: auto;
@@ -1028,6 +1068,19 @@ progress::-webkit-progress-value {
     grid-template-columns: minmax(0, 1.15fr) minmax(260px, 320px);
     align-items: center;
     gap: 22px;
+  }
+
+  .hero-card h1 {
+    font-size: 2rem;
+    line-height: 1.14;
+  }
+
+  .calorie-ring {
+    width: min(100%, 240px);
+  }
+
+  .calorie-ring strong {
+    font-size: 2.6rem;
   }
 
   .hero-summary {
