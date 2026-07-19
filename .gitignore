@@ -1,0 +1,26 @@
+# OS / editor
+.DS_Store
+
+# dependencies / build output
+node_modules
+dist
+.wrangler
+outputs
+
+# env
+.env
+.env.*
+
+# local-only tooling & alt hosting (GitHub Pages serves the repo root as-is)
+package.json
+.openai/
+/scripts/build-site.mjs
+/scripts/export_workbook_sheets_to_csv.py
+/scripts/split_workbook.py
+
+# duplicate of root history-data.js
+/assets/history-data.js
+
+# design/preview screenshots
+/hero-home-*.png
+/assets/hero-comic-app.png
